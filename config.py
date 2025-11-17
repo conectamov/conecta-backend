@@ -3,12 +3,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-
 class Config:
     MAIL_KEY=os.environ.get("MAIL_KEY")
-    
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
+    DATABASE_URL = os.environ.get("DATABASE_URL")
+
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     
