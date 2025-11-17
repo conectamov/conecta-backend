@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: conecta
+      POSTGRES_PASSWORD: conecta123
+      POSTGRES_DB: conecta_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://conecta:conecta123@db:5432/conecta_db
+      FLASK_ENV: production
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+volumes:
+  pgdata:
