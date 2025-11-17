@@ -20,7 +20,7 @@ services:
       MAIL_KEY: ${MAIL_KEY}
       FLASK_ENV: production
     ports:
-      - "8000:8000"
+      - "5000:5000"
     volumes:
       - .:/app
 

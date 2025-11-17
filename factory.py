@@ -4,6 +4,7 @@ from flask_cors import CORS
 from config import Config
 from spectree import SpecTree
 
+
 cors = CORS(support_credentials=True)
 db = SQLAlchemy()
 api = SpecTree(
@@ -17,7 +18,10 @@ api = SpecTree(
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-
     db.init_app(app)
+
+    from controllers import subscriber_blueprint
+    app.register_blueprint(subscriber_blueprint)
+
 
     return app
