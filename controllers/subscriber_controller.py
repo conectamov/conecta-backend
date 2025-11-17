@@ -1,0 +1,47 @@
+from config import Config
+from flask import Blueprint, request
+from factory import api, db
+from pydantic import BaseModel
+from spectree import Response
+from utils import DefaultResponse
+from sqlalchemy import select
+from models import Subscriber
+
+
+subscriber_blueprint = Blueprint('subscriber-blueprint', __name__, url_prefix="/sub")
+
+class SubscribeModel(BaseModel): 
+    name: str
+    email: str
+
+
+@subscriber_blueprint.post("/")
+@api.validate(
+    json=SubscribeModel,
+    tags=["subscriber"],
+    response=Response(HTTP_200=DefaultResponse)
+)
+def subscribe():
+    """
+        Subscribe new user on the newsletter
+    """
+    data = request.json
+    Config.mail_client.subscribers.create(data["email"], fields={'name':data["name"]})
+    
+
+    current = db.session.scalars(
+        select(Subscriber).filter_by(email=data["email"])
+    ).first()
+
+    if current is None:
+        subscriber = Subscriber(
+            name = data["name"],
+            email = data["email"]
+        )
+
+        try: 
+            db.session.add(subscriber)
+            db.session.commit()
+        except:
+            return {"msg": "Something went wrong!"}, 400
+    return {"msg": "Subscribed successfuly!"}
