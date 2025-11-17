@@ -7,7 +7,6 @@ from utils import DefaultResponse
 from sqlalchemy import select
 from models import Subscriber
 
-
 subscriber_blueprint = Blueprint('subscriber-blueprint', __name__, url_prefix="/sub")
 
 class SubscribeModel(BaseModel): 
