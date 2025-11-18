@@ -1,12 +1,67 @@
 from factory import api, db
 from flask import Blueprint, request
-from models import User
+from models import User, UserModel, UserResponse
 from sqlalchemy import select
 from datetime import datetime, timezone
+from utils import DefaultResponse
+from spectree import Response
 
 user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
 
+@user_blueprint.get("/<int:user_id>")
+@api.validate(
+    tags=["users"],
+    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse)
+)
+def get_user(user_id):
+    """
+    Get a specific user
+    """
+
+    user = db.session.get(User, user_id)
+    if user is None:
+        return {"msg": f"Couldn't find user with id {user_id}"}
+
+    response = UserResponse.model_validate(user).model_dump()
+
+    return response
+
+
+@user_blueprint.get("/")
+@api.validate(
+    tags=["users"],
+    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse)
+)
+def get_all():
+    """
+    Get all users
+    """
+
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
+
+    user_pagination = db.paginate(
+     
+   select(User),
+        page=page, 
+        limit=limit,
+        error_out=False
+    )
+
+    users = [UserResponse.model_validate(user).model_dump() for user in user_pagination.items]
+
+    return {
+        'page': user_pagination.page,
+        'pages': user_pagination.pages, 
+        'users': [user for user in users]
+    }
+
 @user_blueprint.post("/")
+@api.validate(
+    tags=["users"],
+    json=UserModel,
+    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse)
+)
 def create_user():
     """
     Create a new user
@@ -31,7 +86,6 @@ def create_user():
         password = data["password"],
         birthdate = datetime.fromisoformat(data["birthdate"]) if data.get("birthdate") else None
     )
-
 
     try: 
         db.session.add(user)

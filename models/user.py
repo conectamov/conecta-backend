@@ -2,6 +2,21 @@ from factory import db
 from sqlalchemy import select
 from datetime import datetime, timezone
 from werkzeug.security import check_password_hash, generate_password_hash
+from pydantic import BaseModel, Optional
+from utils import OrmBase
+
+class UserModel(BaseModel):
+    username: str
+    email: str
+    password: str
+    birthdate: Optional[datetime]
+
+class UserResponse(OrmBase):
+    username: str
+    email: str
+    birthdate: Optional[datetime]
+    created_at: datetime
+
 
 class User(db.Model):
     __tablename__ = "user"
