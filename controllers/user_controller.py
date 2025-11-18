@@ -34,7 +34,7 @@ def get_user(user_id):
 )
 def get_all():
     """
-    Get all users
+    Get all usersgenerate_password_hash
     """
 
     page = request.args.get('page', 1, type=int)
@@ -95,4 +95,44 @@ def create_user():
     
     return {"User created successfuly!"}
 
+@user_blueprint.put("/<int:user_id>")
+@api.validate(
+    tags=["users"],
+    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
+)
+def update_user(user_id):
+    #if current_user.id != user_id:
+     #   if not current_user.role.can_manage_users:
+      #      return {"msg": f"Not authorized!"}, 403
+
+    user = db.session.get(User, user_id)
+    if user is None:
+        return {"msg": f"Couldn't find user with id {user_id}"}, 404
+    
+    data = request.json
+    if "username" in data and data["username"] is not user.username:
+        if db.session.scalars(select(User).filter_by(username=data["username"])).first():
+            return {"msg": f"The username {data["username"]} has already been taken."}, 400
+        user.username = data["username"] 
+    
+    if "email" in data and data["email"] is not user.email:
+        if db.session.scalars(select(User).filter_by(email=data["email"])).first():
+            return {"msg": f"The email {data['email']} has already been taken."}, 400
+        user.email = data["email"]
+    
+    if "birthdate" in data:
+        try:
+            user.birthdate = datetime.fromisoformat(data["birthdate"])
+        except:
+            return {"msg": "Invalid date format. Use YYYY-MM-DD"}, 400
+    
+    if "password" in data:
+        user.password = data["password"]
+        
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return {"msg": "Something went wrong"}, 400
+    return {"msg": "Updated successfuly!"}    
 
