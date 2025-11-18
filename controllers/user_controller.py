@@ -20,7 +20,7 @@ def get_user(user_id):
     Get a specific user
     """
     if current_user.id != user_id:
-        if not current_user.role.can_manage_users:
+        if not current_user.role.can_access_sensitive_information:
             return {"msg": f"Not authorized!"}, 403
 
     user = db.session.get(User, user_id)
@@ -42,7 +42,7 @@ def get_all():
     """
     Get all users
     """
-    if not current_user.role.can_manage_users:
+    if not current_user.role.can_access_sensitive_information:
         return {"msg": f"Not authorized!"}, 403
 
     page = request.args.get('page', 1, type=int)

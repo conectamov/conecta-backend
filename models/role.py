@@ -9,6 +9,8 @@ class Role(db.Model):
     can_manage_subscriptions = db.Column(db.Boolean, default=False)
     can_create_posts = db.Column(db.Boolean, default=False)
     can_manage_posts = db.Column(db.Boolean, default=False)
+    can_manage_roles = db.Column(db.Boolean, default=False)
+    can_access_sensitive_information = db.Column(db.Boolean, default=False)
 
     def __repr__(self) -> str:
         return f"Role {self.name}"
