@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from config import Config
 from spectree import SpecTree
@@ -9,6 +10,7 @@ from spectree import SpecTree
 cors = CORS(support_credentials=True)
 db = SQLAlchemy()
 migrate = Migrate()
+jwt = JWTManager()
 api = SpecTree(
     'flask',
     title="API-Conecta",
