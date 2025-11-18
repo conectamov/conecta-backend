@@ -8,6 +8,7 @@ from spectree import Response
 
 user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
 
+
 @user_blueprint.get("/<int:user_id>")
 @api.validate(
     tags=["users"],
@@ -20,7 +21,7 @@ def get_user(user_id):
 
     user = db.session.get(User, user_id)
     if user is None:
-        return {"msg": f"Couldn't find user with id {user_id}"}
+        return {"msg": f"Couldn't find user with id {user_id}"}, 404
 
     response = UserResponse.model_validate(user).model_dump()
 
@@ -133,7 +134,7 @@ def update_user(user_id):
         db.session.commit()
     except:
         db.session.rollback()
-        return {"msg": "Something went wrong"}, 400
+        return {"msg": "Oops something went wrong"}, 400
     return {"msg": "Updated successfuly!"}    
 
 @user_blueprint.delete("/<int:user_id>")
@@ -154,5 +155,5 @@ def delete_user(user_id):
         db.session.commit()
     except:
         db.session.rollback()
-        return {"msg": "Something went wrong"}, 400
+        return {"msg": "Oops something went wrong"}, 400
     return {"msg": "User deleted successfuly!"}    
