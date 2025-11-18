@@ -1,0 +1,44 @@
+from factory import api, db
+from flask import Blueprint, request
+from models import User
+from sqlalchemy import select
+from datetime import datetime, timezone
+
+user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
+
+@user_blueprint.post("/")
+def create_user():
+    """
+    Create a new user
+    """
+    data = request.json
+
+    conflict = db.session.scalars(
+        select(User).filter(
+            (User.username is data["username"] | User.email is data["email"])    
+        )
+    ).first()
+
+    if conflict: 
+        if conflict.username is data["username"]:
+            return {"msg": f"The username {data["username"]} has already been taken"}, 400
+        if conflict.email is data["email"]:
+            return {"msg": f"The email {data["email"]} has already been taken"}, 400
+        
+    user = User(
+        username = data["username"],
+        email = data["email"],
+        password = data["password"],
+        birthdate = datetime.fromisoformat(data["birthdate"]) if data.get("birthdate") else None
+    )
+
+
+    try: 
+        db.session.add(user)
+        db.session.commit()
+    except:
+        return {"msg": "Oops, something went wrong"}, 500
+    
+    return {"User created successfuly!"}
+
+

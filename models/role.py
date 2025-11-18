@@ -8,8 +8,7 @@ class Role(db.Model):
     cam_manage_users = db.Column(db.Boolean, default=False)
     cam_manage_subscriptions = db.Column(db.Boolean, default=False)
     cam_create_posts = db.Column(db.Boolean, default=False),
-    cam_manage_posts = db.Column(db.Boolean, default=False),
-
+    cam_manage_posts = db.Column(db.Boolean, default=False)
 
     def __repr__(self) -> str:
         return f"Role {self.name}"
