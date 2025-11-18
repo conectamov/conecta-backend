@@ -136,3 +136,23 @@ def update_user(user_id):
         return {"msg": "Something went wrong"}, 400
     return {"msg": "Updated successfuly!"}    
 
+@user_blueprint.delete("/<int:user_id>")
+@api.validate(
+    tags=["users"],
+    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
+)
+def delete_user(user_id):
+    #if current_user.id != user_id:
+     #   if not current_user.role.can_manage_users:
+      #      return {"msg": f"Not authorized!"}, 403
+
+    user = db.session.get(User, user_id)
+    if user is None:
+        return {"msg": f"Couldn't find user with id {user_id}"}, 404
+    try:
+        db.session.delete(user)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return {"msg": "Something went wrong"}, 400
+    return {"msg": "User deleted successfuly!"}    
