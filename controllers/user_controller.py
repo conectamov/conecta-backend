@@ -5,19 +5,23 @@ from sqlalchemy import select
 from datetime import datetime, timezone
 from utils import DefaultResponse
 from spectree import Response
+from flask_jwt_extended import jwt_required, current_user
 
 user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
-
 
 @user_blueprint.get("/<int:user_id>")
 @api.validate(
     tags=["users"],
     resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse)
 )
+@jwt_required
 def get_user(user_id):
     """
     Get a specific user
     """
+    if current_user.id != user_id:
+        if not current_user.role.can_manage_users:
+            return {"msg": f"Not authorized!"}, 403
 
     user = db.session.get(User, user_id)
     if user is None:
@@ -33,10 +37,13 @@ def get_user(user_id):
     tags=["users"],
     resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse)
 )
+@jwt_required
 def get_all():
     """
-    Get all usersgenerate_password_hash
+    Get all users
     """
+    if not current_user.role.can_manage_users:
+        return {"msg": f"Not authorized!"}, 403
 
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
@@ -101,10 +108,11 @@ def create_user():
     tags=["users"],
     resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
 )
+@jwt_required
 def update_user(user_id):
-    #if current_user.id != user_id:
-     #   if not current_user.role.can_manage_users:
-      #      return {"msg": f"Not authorized!"}, 403
+    if current_user.id != user_id:
+        if not current_user.role.can_manage_users:
+            return {"msg": f"Not authorized!"}, 403
 
     user = db.session.get(User, user_id)
     if user is None:
@@ -142,10 +150,11 @@ def update_user(user_id):
     tags=["users"],
     resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
 )
+@jwt_required
 def delete_user(user_id):
-    #if current_user.id != user_id:
-     #   if not current_user.role.can_manage_users:
-      #      return {"msg": f"Not authorized!"}, 403
+    if current_user.id != user_id:
+        if not current_user.role.can_manage_users:
+            return {"msg": f"Not authorized!"}, 403
 
     user = db.session.get(User, user_id)
     if user is None:
