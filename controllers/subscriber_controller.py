@@ -13,12 +13,11 @@ class SubscribeModel(BaseModel):
     name: str
     email: str
 
-
 @subscriber_blueprint.post("/")
 @api.validate(
     json=SubscribeModel,
     tags=["subscriber"],
-    response=Response(HTTP_200=DefaultResponse)
+    resp=Response(HTTP_200=DefaultResponse)
 )
 def subscribe():
     """
@@ -26,7 +25,6 @@ def subscribe():
     """
     data = request.json
     Config.mail_client.subscribers.create(data["email"], fields={'name':data["name"]})
-    
 
     current = db.session.scalars(
         select(Subscriber).filter_by(email=data["email"])
