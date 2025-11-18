@@ -1,6 +1,5 @@
 from factory import db
 from sqlalchemy import select
-from models import Role
 from datetime import datetime, timezone
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -35,6 +34,7 @@ class User(db.Model):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.role:
+            from .role import Role
             self.role = db.session.scalars(
                 select(Role).filter_by(name="user")
             ).first()
