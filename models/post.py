@@ -6,7 +6,7 @@ from typing import Optional
 
 class PostModel(BaseModel):
     title: str
-    excerpt: str
+    excerpt: Optional[str]
     cover_url: Optional[str]
     meta: Optional[dict]
     content_md: str

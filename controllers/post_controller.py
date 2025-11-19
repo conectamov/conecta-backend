@@ -10,6 +10,14 @@ from models.user import User
 
 post_blueprint = Blueprint('post-blueprint', __name__, url_prefix="/posts")
 
+#constroi resumo
+def build_excerpt(content: str, limit: int = 250) -> str:
+    excerpt = content[:limit]
+    if len(content) > limit:
+        excerpt = excerpt.rsplit(" ", 1)[0] + "..."
+    return excerpt
+
+
 @post_blueprint.get("/")
 @api.validate(
     tags=["posts"],
@@ -103,7 +111,7 @@ def create_post():
     post = Post(
         title = data["title"],
         content_md = data["content_md"],
-        excerpt = data["excerpt"],
+        excerpt = data["excerpt"] if data.get("excerpt") else build_excerpt(data["content_md"]),
         slug = slug,
         meta = data["meta"],
         cover_url = data["cover_url"],
