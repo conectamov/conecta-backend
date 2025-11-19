@@ -25,7 +25,7 @@ auth_blueprint = Blueprint("auth-blueprint", __name__, url_prefix="/auth")
 def login():
     data = request.json
 
-    user = db.session.scalars(select(User).filter_by(data["username"])).first()
+    user = db.session.scalars(select(User).filter_by(username=data['username'])).first()
 
     if user and user.verify_password(data["password"]):
         return {

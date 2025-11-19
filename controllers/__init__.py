@@ -1,1 +1,3 @@
 from .subscriber_controller import subscriber_blueprint
+from .user_controller import user_blueprint
+from .auth_controller import auth_blueprint

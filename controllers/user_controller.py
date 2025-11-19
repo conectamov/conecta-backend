@@ -1,6 +1,6 @@
 from factory import api, db
 from flask import Blueprint, request
-from models import User, UserModel, UserResponse
+from models import User, UserModel, UserResponse, UserResponseList
 from sqlalchemy import select
 from datetime import datetime, timezone
 from utils import DefaultResponse
@@ -12,9 +12,9 @@ user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
 @user_blueprint.get("/<int:user_id>")
 @api.validate(
     tags=["users"],
-    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse)
+    resp=Response(HTTP_200=UserResponse, HTTP_400=DefaultResponse)
 )
-@jwt_required
+@jwt_required()
 def get_user(user_id):
     """
     Get a specific user
@@ -24,7 +24,7 @@ def get_user(user_id):
             return {"msg": f"Not authorized!"}, 403
 
     user = db.session.get(User, user_id)
-    if user is None:
+    if user == None:
         return {"msg": f"Couldn't find user with id {user_id}"}, 404
 
     response = UserResponse.model_validate(user).model_dump()
@@ -35,9 +35,9 @@ def get_user(user_id):
 @user_blueprint.get("/")
 @api.validate(
     tags=["users"],
-    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse)
+    resp=Response(HTTP_200=UserResponseList, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse)
 )
-@jwt_required
+@jwt_required()
 def get_all():
     """
     Get all users
@@ -49,14 +49,23 @@ def get_all():
     limit = request.args.get('limit', 10, type=int)
 
     user_pagination = db.paginate(
-     
-   select(User),
+        select(User),
         page=page, 
-        limit=limit,
+        per_page=limit,
         error_out=False
     )
 
-    users = [UserResponse.model_validate(user).model_dump() for user in user_pagination.items]
+    users = []
+    for user in user_pagination.items:
+        role_name = user.role.name if user.role else None
+        users.append(UserResponse.model_validate({
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "birthdate": user.birthdate,
+            "role": role_name,
+            "created_at": user.created_at
+        }).model_dump())
 
     return {
         'page': user_pagination.page,
@@ -78,16 +87,16 @@ def create_user():
 
     conflict = db.session.scalars(
         select(User).filter(
-            (User.username is data["username"] | User.email is data["email"])    
+            (User.username == data["username"]) | (User.email == data["email"])
         )
     ).first()
 
     if conflict: 
-        if conflict.username is data["username"]:
-            return {"msg": f"The username {data["username"]} has already been taken"}, 400
-        if conflict.email is data["email"]:
-            return {"msg": f"The email {data["email"]} has already been taken"}, 400
-        
+        if conflict.username == data["username"]:
+            return {"msg": f"The username {data['username']} has already been taken"}, 400
+        if conflict.email == data["email"]:
+            return {"msg": f"The email {data['email']} has already been taken"}, 400
+
     user = User(
         username = data["username"],
         email = data["email"],
@@ -101,14 +110,14 @@ def create_user():
     except:
         return {"msg": "Oops, something went wrong"}, 500
     
-    return {"User created successfuly!"}
+    return {"msg": "User created successfuly!"}
 
 @user_blueprint.put("/<int:user_id>")
 @api.validate(
     tags=["users"],
     resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
 )
-@jwt_required
+@jwt_required()
 def update_user(user_id):
     if current_user.id != user_id:
         if not current_user.role.can_manage_users:
@@ -121,7 +130,7 @@ def update_user(user_id):
     data = request.json
     if "username" in data and data["username"] is not user.username:
         if db.session.scalars(select(User).filter_by(username=data["username"])).first():
-            return {"msg": f"The username {data["username"]} has already been taken."}, 400
+            return {"msg": f"The username {data['username']} has already been taken."}, 400
         user.username = data["username"] 
     
     if "email" in data and data["email"] is not user.email:
@@ -150,7 +159,7 @@ def update_user(user_id):
     tags=["users"],
     resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
 )
-@jwt_required
+@jwt_required() 
 def delete_user(user_id):
     if current_user.id != user_id:
         if not current_user.role.can_manage_users:

@@ -16,8 +16,13 @@ class UserResponse(OrmBase):
     username: str
     email: str
     birthdate: Optional[datetime]
+    role: Optional[str]
     created_at: datetime
 
+class UserResponseList(BaseModel):
+    page: int
+    pages: int
+    users: list[UserResponse]
 
 class User(db.Model):
     __tablename__ = "user"

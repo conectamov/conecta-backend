@@ -12,5 +12,7 @@ class Role(db.Model):
     can_manage_roles = db.Column(db.Boolean, default=False)
     can_access_sensitive_information = db.Column(db.Boolean, default=False)
 
+    user = db.relationship("User", back_populates="role")
+
     def __repr__(self) -> str:
         return f"Role {self.name}"

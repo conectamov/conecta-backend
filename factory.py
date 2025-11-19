@@ -24,6 +24,7 @@ def create_app():
     app.config.from_object(Config)
 
     db.init_app(app)
+    jwt.init_app(app)
     migrate.init_app(app, db)
 
     from models import User
@@ -31,10 +32,13 @@ def create_app():
     def user_load(header, data):
         current_user = db.session.scalars(
             select(User).filter_by(username=data["sub"])
-        ).first
+        ).first()
         return current_user
 
-    from controllers import subscriber_blueprint
+    from controllers import subscriber_blueprint, user_blueprint, auth_blueprint
     app.register_blueprint(subscriber_blueprint)
+    app.register_blueprint(user_blueprint)
+    app.register_blueprint(auth_blueprint)
+
 
     return app
