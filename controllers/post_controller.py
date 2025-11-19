@@ -15,6 +15,9 @@ post_blueprint = Blueprint('post-blueprint', __name__, url_prefix="/posts")
     tags=["posts"],
 )
 def get_all():
+    """
+    Get all posts
+    """
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 5, type=int)
 
@@ -39,7 +42,7 @@ def get_all():
 
 @post_blueprint.get("/<string:slug>")
 @api.validate(
-    tags=["post"],
+    tags=["posts"],
     resp=Response(HTTP_200=PostResponse, HTTP_404=DefaultResponse)
 )
 def get_post(slug):
@@ -74,6 +77,9 @@ def get_post(slug):
 )
 @jwt_required()
 def create_post():
+    """
+    Create one post
+    """
     if not current_user.role.can_create_posts:
         return {"msg": "Not authorized!"}, 401
 
@@ -109,6 +115,9 @@ def create_post():
 )
 @jwt_required()
 def update_post(post_id):
+    """
+    Update an existing post
+    """
     post = db.session.get(Post, post_id)
     if not post:
         return {"msg": "Post not found."}, 404

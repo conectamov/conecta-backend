@@ -26,7 +26,7 @@ class PostResponseMini(OrmBase):
     excerpt: str
     slug: str
 
-class PostResposeList(BaseModel):
+class PostResponseList(BaseModel):
     page: int
     pages: int
     posts: list[PostResponseMini]     
