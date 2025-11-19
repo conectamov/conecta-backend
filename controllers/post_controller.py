@@ -29,6 +29,7 @@ def get_all():
     )
 
     posts = [PostResponseMini.model_validate({
+        "id": post.id,
         "title": post.title,
         "excerpt": post.excerpt,
         "slug": post.slug
@@ -57,6 +58,7 @@ def get_post(slug):
         return {"msg": "Couldn't find this post"}, 404
     
     response = PostResponse.model_validate({
+        "id": post.id,
         "title": post.title,
         "excerpt": post.excerpt,
         "slug": post.slug,
@@ -85,6 +87,13 @@ def create_post():
 
     data = request.json
 
+    conflict = db.session.scalars(
+        select(Post).filter_by(title=data["title"])
+    ).first()
+
+    if conflict:
+        return {"msg": f"A post with the exactly same title '{data['title']}' already exists."}, 400
+
     slug = (
         data["title"].strip().lower()
             .replace(" ", "-")
@@ -111,7 +120,7 @@ def create_post():
 @post_blueprint.put("/<int:post_id>")
 @api.validate(
     tags=["posts"],
-    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
+    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse)
 )
 @jwt_required()
 def update_post(post_id):
@@ -184,3 +193,27 @@ def update_post(post_id):
 
     response = PostResponse.model_validate(resp).model_dump()
     return response
+
+@post_blueprint.put("/<int:post_id>")
+@api.validate(
+    tags=["posts"],
+    resp = Response(HTTP_200=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse)
+)
+@jwt_required()
+def delete_post(post_id):
+    post = db.session.get(Post, post_id)
+
+    if post is None:
+        return {"msg": f"Couldn't find post with id {post_id}"}, 404
+
+    if current_user.id != post.author_id:
+        if not current_user.role.can_manage_posts:
+            return {"msg": "Not authorized!"}, 401
+        
+    try: 
+        db.session.delete(post)
+        db.session.commit()
+    except: 
+        db.session.rollback()
+        return {"msg": "Oops, something went wrong"}, 400
+    return {"msg": 'Post deleted successfuly!'}
