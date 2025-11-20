@@ -5,21 +5,21 @@ from typing import Optional
 
 class RoleModel(BaseModel):
     name: str
-    can_manage_users: Optional[str]
-    can_manage_subscriptions: Optional[str]
-    can_create_posts: Optional[str]
-    can_manage_posts: Optional[str]
-    can_manage_roles: Optional[str]
-    can_access_sensitive_information: Optional[str]
+    can_manage_users: Optional[bool]
+    can_manage_subscriptions: Optional[bool]
+    can_create_posts: Optional[bool]
+    can_manage_posts: Optional[bool]
+    can_manage_roles: Optional[bool]
+    can_access_sensitive_information: Optional[bool]
 
 class RoleResponse(OrmBase):
     name: str
-    can_manage_users: str
-    can_manage_subscriptions: str
-    can_create_posts: str
-    can_manage_posts: str
-    can_manage_roles: str
-    can_access_sensitive_information: str
+    can_manage_users: bool
+    can_manage_subscriptions: bool
+    can_create_posts: bool
+    can_manage_posts: bool
+    can_manage_roles: bool
+    can_access_sensitive_information: bool
 
 class RoleResponseMini(OrmBase): 
     name: str
