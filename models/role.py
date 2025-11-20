@@ -1,4 +1,33 @@
 from factory import db
+from pydantic import BaseModel
+from utils import OrmBase
+from typing import Optional
+
+class RoleModel(BaseModel):
+    name: str
+    can_manage_users: Optional[str]
+    can_manage_subscriptions: Optional[str]
+    can_create_posts: Optional[str]
+    can_manage_posts: Optional[str]
+    can_manage_roles: Optional[str]
+    can_access_sensitive_information: Optional[str]
+
+class RoleResponse(OrmBase):
+    name: str
+    can_manage_users: str
+    can_manage_subscriptions: str
+    can_create_posts: str
+    can_manage_posts: str
+    can_manage_roles: str
+    can_access_sensitive_information: str
+
+class RoleResponseMini(OrmBase): 
+    name: str
+
+class RoleResponseList(BaseModel):
+    page: int
+    pages: int
+    roles: list[RoleResponseMini]
 
 class Role(db.Model):
     __tablename__ = "role"

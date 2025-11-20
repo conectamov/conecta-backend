@@ -209,6 +209,9 @@ def update_post(post_id):
 )
 @jwt_required()
 def delete_post(post_id):
+    """
+    Delete a post by its id
+    """
     post = db.session.get(Post, post_id)
 
     if post is None:

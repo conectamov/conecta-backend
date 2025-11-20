@@ -16,7 +16,7 @@ api = SpecTree(
     title="API-Conecta",
     path="docs",
     version="v1.0",
-    security=[{"BearerAuth": []}]
+    security_default=[{"BearerAuth": []}],
 )
 
 def create_app():
