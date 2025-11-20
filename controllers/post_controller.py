@@ -202,7 +202,7 @@ def update_post(post_id):
     response = PostResponse.model_validate(resp).model_dump()
     return response
 
-@post_blueprint.put("/<int:post_id>")
+@post_blueprint.delete("/<int:post_id>")
 @api.validate(
     tags=["posts"],
     resp = Response(HTTP_200=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse)
