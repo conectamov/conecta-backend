@@ -6,13 +6,15 @@ from datetime import datetime, timezone
 from utils import DefaultResponse
 from spectree import Response
 from flask_jwt_extended import jwt_required, current_user
+from utils.auth import require_permission
 
 user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
 
 @user_blueprint.get("/<int:user_id>")
 @api.validate(
     tags=["users"],
-    resp=Response(HTTP_200=UserResponse, HTTP_400=DefaultResponse)
+    resp=Response(HTTP_200=UserResponse, HTTP_400=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
 def get_user(user_id):
@@ -35,16 +37,15 @@ def get_user(user_id):
 @user_blueprint.get("/")
 @api.validate(
     tags=["users"],
-    resp=Response(HTTP_200=UserResponseList, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse)
+    resp=Response(HTTP_200=UserResponseList, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
+@require_permission("can_access_sensititve_information")
 def get_all():
     """
     Get all users
     """
-    if not current_user.role.can_access_sensitive_information:
-        return {"msg": f"Not authorized!"}, 403
-
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
 
@@ -119,7 +120,8 @@ def create_user():
 @user_blueprint.put("/<int:user_id>")
 @api.validate(
     tags=["users"],
-    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
+    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
 def update_user(user_id):
@@ -168,7 +170,8 @@ def update_user(user_id):
 @user_blueprint.delete("/<int:user_id>")
 @api.validate(
     tags=["users"],
-    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
+    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required() 
 def delete_user(user_id):

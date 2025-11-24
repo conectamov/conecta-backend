@@ -10,14 +10,23 @@ from sqlalchemy import select
 cors = CORS(support_credentials=True)
 db = SQLAlchemy()
 migrate = Migrate()
-jwt = JWTManager()
 api = SpecTree(
     'flask',
-    title="API-Conecta",
+    title="Conecta API",
     path="docs",
     version="v1.0",
-    security_default=[{"BearerAuth": []}],
+    security_schemes=[
+            SecurityScheme(
+                name="BearerAuth",  
+                data={
+                    "type": "http",     
+                    "scheme": "bearer",   
+                    "bearerFormat": "JWT" 
+                }
+            )
+        ]
 )
+jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)

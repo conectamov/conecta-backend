@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from sqlalchemy import select
 from models import User
 from pydantic import BaseModel
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required
 from spectree import Response
 from utils import DefaultResponse
 
@@ -38,8 +38,10 @@ def login():
 
 @auth_blueprint.post("/logout")
 @api.validate(
-    tags=["auth"]
+    tags=["auth"],
+    security={"BearerAuth": []}  
 )
+@jwt_required()
 def logout():
     """
     Logout user

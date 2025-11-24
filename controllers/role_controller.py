@@ -7,6 +7,7 @@ from models.role import Role, RoleResponse, RoleModel, RoleResponseList, RoleRes
 from datetime import datetime, timezone
 from sqlalchemy import select
 from models.user import User
+from utils.auth import require_permission
 
 role_blueprint = Blueprint('role-blueprint', __name__, url_prefix="/roles")
 
@@ -20,18 +21,17 @@ def to_bool(val):
     return bool(val)
 
 @role_blueprint.get("/")
+@jwt_required()
 @api.validate(
     tags=["roles"],
-    resp = Response(HTTP_200=RoleResponseList, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse)
+    resp = Response(HTTP_200=RoleResponseList, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
+    security={"BearerAuth": []}
 )
-@jwt_required()
+@require_permission("can_access_sensitive_information")
 def get_all():
     """
     Get all roles
     """
-    if not current_user.role.can_access_sensitive_information:
-        return {"msg": "Not authorized!"}, 403
-
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 5, type=int)
 
@@ -56,16 +56,15 @@ def get_all():
 @role_blueprint.get("/<int:role_id>")
 @api.validate(
     tags=["roles"],
-    resp = Response(HTTP_200=RoleResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse)
+    resp = Response(HTTP_200=RoleResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
+@require_permission("can_access_sensitive_information")
 def get_role(role_id):
     """
     Get a specific role
     """
-    if not current_user.role.can_access_sensitive_information:
-        return {"msg": "Not authorized!"}, 403
-
     role = db.session.get(Role, role_id)
     if role is None:
         return {"msg": f"Couldn't find role with id {role_id}"}, 404
@@ -87,16 +86,15 @@ def get_role(role_id):
 @api.validate(
     tags=["roles"],
     json=RoleModel,
-    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse)
+    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
+@require_permission("can_manage_roles")
 def create_role():
     """
     Create a new role
     """
-    if not current_user.role.can_manage_roles:
-        return {"msg": "Not authorized!"}, 403
-    
     data = request.json
 
     if "name" not in data or not data["name"]:
@@ -123,16 +121,16 @@ def create_role():
         return {"msg": "Something went wrong!"}, 400
     return {"msg": "Role created successfuly!"}
 
+
 @role_blueprint.put("/<int:role_id>")
 @api.validate(
     tags=["roles"],
-    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
+    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
+@require_permission("can_manage_roles")
 def update_role(role_id):
-    if not current_user.role.can_manage_roles:
-        return {"msg": "Not authorized!"}, 403
-
     role = db.session.get(Role, role_id)
     if role is None:
         return {"msg": f"Couldn't find role with id {role_id}"}, 404
@@ -169,13 +167,12 @@ def update_role(role_id):
 @api.validate(
     tags=["roles"],
     resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse,
-                    HTTP_404=DefaultResponse, HTTP_403=DefaultResponse)
+                    HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
+@require_permission("can_manage_roles")
 def delete_role(role_id):
-    if not current_user.role.can_manage_roles:
-        return {"msg": "Not authorized!"}, 403
-
     role = db.session.get(Role, role_id)
     if role is None:
         return {"msg": f"Couldn't find role with id {role_id}"}, 404

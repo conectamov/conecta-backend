@@ -7,10 +7,12 @@ from models.post import Post, PostModel, PostResponseList, PostResponse, PostRes
 from datetime import datetime, timezone
 from sqlalchemy import select
 from models.user import User
+from utils.auth import require_permission
 
 post_blueprint = Blueprint('post-blueprint', __name__, url_prefix="/posts")
 
 #constroi resumo
+
 def build_excerpt(content: str, limit: int = 250) -> str:
     excerpt = content[:limit]
     if len(content) > limit:
@@ -83,16 +85,15 @@ def get_post(slug):
 @api.validate(
     tags=["posts"],
     json=PostModel,
-    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_401=DefaultResponse)
+    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_401=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
+@require_permission("can_create_posts")
 def create_post():
     """
     Create one post
     """
-    if not current_user.role.can_create_posts:
-        return {"msg": "Not authorized!"}, 401
-
     data = request.json
 
     conflict = db.session.scalars(
@@ -128,7 +129,8 @@ def create_post():
 @post_blueprint.put("/<int:post_id>")
 @api.validate(
     tags=["posts"],
-    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse)
+    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
 def update_post(post_id):
@@ -205,7 +207,8 @@ def update_post(post_id):
 @post_blueprint.delete("/<int:post_id>")
 @api.validate(
     tags=["posts"],
-    resp = Response(HTTP_200=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse)
+    resp = Response(HTTP_200=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse),
+    security={"BearerAuth": []}
 )
 @jwt_required()
 def delete_post(post_id):
