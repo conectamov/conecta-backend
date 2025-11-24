@@ -23,4 +23,11 @@ RUN python -m pip install --upgrade pip setuptools wheel \
 
 COPY . .
 
-CMD ["sh", "-c", "python3 /app/playground.py && exec gunicorn -w 4 -b 0.0.0.0:5000 app:app"]
+ENV FLASK_APP=app
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["sh", "/entrypoint.sh"]
+
+CMD ["sh", "-c", "exec gunicorn -w 4 -b 0.0.0.0:5000 app:app"]

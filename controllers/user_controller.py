@@ -63,6 +63,8 @@ def get_all():
             "username": user.username,
             "email": user.email,
             "birthdate": user.birthdate,
+            "public_title": user.public_title,
+            "avatar_url": user.avatar_url,
             "role": role_name,
             "created_at": user.created_at
         }).model_dump())
@@ -101,6 +103,8 @@ def create_user():
         username = data["username"],
         email = data["email"],
         password = data["password"],
+        avatar_url = data["avatar_url"],
+        public_title = "Usuário",
         birthdate = datetime.fromisoformat(data["birthdate"]) if data.get("birthdate") else None
     )
 
@@ -138,6 +142,13 @@ def update_user(user_id):
             return {"msg": f"The email {data['email']} has already been taken."}, 400
         user.email = data["email"]
     
+    user.avatar_url = data["avatar_url"]
+    
+    if "public_title" in data and not current_user.role.can_manage_users:
+        return {"msg": "Not authorized to change public_title."}, 403
+    else: 
+        user.public_title = data["public_title"]
+
     if "birthdate" in data:
         try:
             user.birthdate = datetime.fromisoformat(data["birthdate"])

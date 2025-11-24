@@ -10,11 +10,14 @@ class UserModel(BaseModel):
     username: str
     email: str
     password: str
+    avatar_url: Optional[str]
     birthdate: Optional[datetime]
 
 class UserResponse(OrmBase):
     username: str
     email: str
+    public_title: Optional[str]
+    avatar_url: Optional[str]
     birthdate: Optional[datetime]
     role: Optional[str]
     created_at: datetime
@@ -30,6 +33,8 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
+    avatar_url = db.Column(db.UnicodeText, nullable=True)
+    public_title = db.Column(db.String(128), nullable=True)
     password_hash = db.Column(db.Unicode(256), nullable=False)
     birthdate = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default = lambda: datetime.now(timezone.utc))

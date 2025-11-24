@@ -5,8 +5,6 @@ from models.role import Role
 from dotenv import load_dotenv
 from sqlalchemy import select
 from models.user import User
-from models.post import Post
-from datetime import datetime, timezone
 
 load_dotenv()
 
@@ -41,6 +39,7 @@ with app.app_context():
             username = admin_username,
             email = admin_email,
             password = admin_password,
+            public_title = "Anuncio oficial CONECTA",
             role = admin_role
         )
 
