@@ -30,4 +30,4 @@ RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]
 
-CMD ["sh", "-c", "exec gunicorn -w 4 -b 0.0.0.0:5000 app:app"]
+CMD ["sh", "-c", "exec gunicorn -w 4 -b 0.0.0.0:8080 app:app"]
