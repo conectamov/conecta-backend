@@ -19,7 +19,7 @@ class UserResponse(OrmBase):
     public_title: Optional[str]
     avatar_url: Optional[str]
     birthdate: Optional[datetime]
-    role: Optional[str]
+    role_name: Optional[str]
     created_at: datetime
 
 class UserResponseList(BaseModel):

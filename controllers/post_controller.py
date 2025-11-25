@@ -7,7 +7,6 @@ from models.post import Post, PostModel, PostResponseList, PostResponse, PostRes
 from datetime import datetime, timezone
 from sqlalchemy import select
 from models.user import User
-from utils.auth import require_permission
 
 post_blueprint = Blueprint('post-blueprint', __name__, url_prefix="/posts")
 
@@ -89,11 +88,14 @@ def get_post(slug):
     security={"BearerAuth": []}
 )
 @jwt_required()
-@require_permission("can_create_posts")
 def create_post():
     """
     Create one post
     """
+
+    if not current_user.role.can_create_posts: 
+        return {"msg": "Not authorized!"}, 403
+
     data = request.json
 
     conflict = db.session.scalars(

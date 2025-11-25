@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from utils import DefaultResponse
 from spectree import Response
 from flask_jwt_extended import jwt_required, current_user
-from utils.auth import require_permission
 
 user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
 
@@ -29,6 +28,8 @@ def get_user(user_id):
     if user == None:
         return {"msg": f"Couldn't find user with id {user_id}"}, 404
 
+    user.role_name = user.role.name
+
     response = UserResponse.model_validate(user).model_dump()
 
     return response
@@ -41,11 +42,14 @@ def get_user(user_id):
     security={"BearerAuth": []}
 )
 @jwt_required()
-@require_permission("can_access_sensititve_information")
 def get_all():
     """
     Get all users
     """
+
+    if not current_user.role.can_access_sensitive_information:
+        return {"Not authorized"}, 403
+
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
 
@@ -66,7 +70,7 @@ def get_all():
             "birthdate": user.birthdate,
             "public_title": user.public_title,
             "avatar_url": user.avatar_url,
-            "role": role_name,
+            "role_name": role_name,
             "created_at": user.created_at
         }).model_dump())
 
