@@ -27,7 +27,7 @@ def subscribe():
     try:
         Config.mail_client.subscribers.create(data["email"], fields={'name':data["name"]})
     except:
-        return {"msg": "Error while contacting mail client service."}, 500
+        return {"msg": "Failed to send email: the recipient address may be invalid or the mail service is unreachable."}, 500
     current = db.session.scalars(
         select(Subscriber).filter_by(email=data["email"])
     ).first()
