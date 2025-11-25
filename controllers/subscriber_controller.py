@@ -17,15 +17,17 @@ class SubscribeModel(BaseModel):
 @api.validate(
     json=SubscribeModel,
     tags=["subscriber"],
-    resp=Response(HTTP_200=DefaultResponse)
+    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse)
 )
 def subscribe():
     """
         Subscribe new user on the newsletter
     """
     data = request.json
-    Config.mail_client.subscribers.create(data["email"], fields={'name':data["name"]})
-
+    try:
+        Config.mail_client.subscribers.create(data["email"], fields={'name':data["name"]})
+    except:
+        return {"msg": "Error while contacting mail client service."}, 500
     current = db.session.scalars(
         select(Subscriber).filter_by(email=data["email"])
     ).first()
