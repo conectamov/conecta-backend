@@ -22,6 +22,7 @@ class UserResponse(OrmBase):
     role_name: Optional[str]
     created_at: datetime
 
+
 class UserResponseList(BaseModel):
     page: int
     pages: int

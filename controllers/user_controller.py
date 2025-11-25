@@ -84,7 +84,7 @@ def get_all():
 @api.validate(
     tags=["users"],
     json=UserModel,
-    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse)
+    resp=Response(HTTP_200=UserResponse, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse)
 )
 def create_user():
     """
@@ -118,8 +118,10 @@ def create_user():
         db.session.commit()
     except:
         return {"msg": "Oops, something went wrong"}, 500
+    user.role_name = user.role.name
+    return UserResponse.model_validate(user).model_dump()
     
-    return {"msg": "User created successfuly!"}
+
 
 @user_blueprint.put("/<int:user_id>")
 @api.validate(
