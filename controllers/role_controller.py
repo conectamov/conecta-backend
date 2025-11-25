@@ -185,7 +185,7 @@ def update_role(role_id):
 def delete_role(role_id):
 
     if not current_user.role.can_manage_roles:
-        return {"Not authorized"}, 403
+        return {"msg": "Not authorized"}, 403
     
     role = db.session.get(Role, role_id)
     if role is None:

@@ -38,7 +38,7 @@ def get_user(user_id):
 @user_blueprint.get("/")
 @api.validate(
     tags=["users"],
-    resp=Response(HTTP_200=UserResponseList, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse),
+    resp=Response(HTTP_200=UserResponseList, HTTP_400=DefaultResponse, HTTP_500=DefaultResponse, HTTP_403=DefaultResponse),
     security={"BearerAuth": []}
 )
 @jwt_required()
@@ -48,7 +48,7 @@ def get_all():
     """
 
     if not current_user.role.can_access_sensitive_information:
-        return {"Not authorized"}, 403
+        return {"msg": "Not authorized"}, 403
 
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
