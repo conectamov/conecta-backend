@@ -13,6 +13,11 @@ class UserModel(BaseModel):
     avatar_url: Optional[str]
     birthdate: Optional[datetime]
 
+class UserPublic(OrmBase):
+    username: str
+    avatar_url: Optional[str]
+    public_title: Optional[str]
+
 class UserResponse(OrmBase):
     username: str
     email: str

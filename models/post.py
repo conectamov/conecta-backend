@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pydantic import BaseModel
 from utils import OrmBase
 from typing import Optional
+from .user import UserPublic
 
 class PostModel(BaseModel):
     title: str
@@ -18,13 +19,14 @@ class PostResponse(OrmBase):
     cover_url: Optional[str]
     meta: Optional[dict]
     content_md: str
-    author_id: int
+    author: UserPublic
     created_at: datetime
 
 class PostResponseMini(OrmBase): 
     title: str
     excerpt: str
     slug: str
+    author: UserPublic
 
 class PostResponseList(BaseModel):
     page: int

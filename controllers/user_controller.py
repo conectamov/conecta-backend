@@ -1,6 +1,6 @@
 from factory import api, db
 from flask import Blueprint, request
-from models import User, UserModel, UserResponse, UserResponseList
+from models import User, UserModel, UserResponse, UserResponseList, UserPublic
 from sqlalchemy import select
 from datetime import datetime, timezone
 from utils import DefaultResponse
@@ -18,7 +18,7 @@ user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
 @jwt_required()
 def get_user(user_id):
     """
-    Get a specific user
+    Get sensitive user information (permission required)
     """
     if current_user.id != user_id:
         if not current_user.role.can_access_sensitive_information:
@@ -34,6 +34,25 @@ def get_user(user_id):
 
     return response
 
+@user_blueprint.get("/p/<int:user_id>")
+@api.validate(
+    tags=["users"],
+    resp=Response(HTTP_200=UserPublic, HTTP_400=DefaultResponse),
+    security={"BearerAuth": []}
+)
+@jwt_required()
+def get_public_user(user_id):
+    """
+    Get user public information
+    """
+    user = db.session.get(User, user_id)
+    if user == None:
+        return {"msg": f"Couldn't find user with id {user_id}"}, 404
+
+    response = UserPublic.model_validate(user).model_dump()
+
+    return response
+
 
 @user_blueprint.get("/")
 @api.validate(
@@ -44,7 +63,7 @@ def get_user(user_id):
 @jwt_required()
 def get_all():
     """
-    Get all users
+    Get all users (permission required)
     """
 
     if not current_user.role.can_access_sensitive_information:
