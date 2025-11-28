@@ -7,7 +7,7 @@ from config import Config
 from spectree import SpecTree, SecurityScheme
 from sqlalchemy import select
 
-cors = CORS(support_credentials=True)
+cors = CORS(support_credentials=True, origins="*")
 db = SQLAlchemy()
 migrate = Migrate()
 api = SpecTree(
