@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required, current_user
 from factory import api, db
 from spectree import Response
 from utils import DefaultResponse
-from models.post import Post, PostModel, PostResponseList, PostResponse, PostResponseMini
+from models.post import Post, PostModel, PostResponseList, PostResponse, PostResponseMini, ArgsAllModel
 from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
@@ -32,17 +32,23 @@ def generate_slug(text: str) -> str:
 @post_blueprint.get("/")
 @api.validate(
     tags=["posts"],
+    query=ArgsAllModel,
     resp=Response(HTTP_200=PostResponseList, HTTP_404=DefaultResponse)
 )
 def get_all():
     """
-    Get all posts with authors 
+    Get all posts with authors by a search model
     """
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 5, type=int)
+    search = request.args.get('search', "")
 
     stmt = (
         select(Post)
+        .filter(
+            (Post.title.ilike(f"%{search}%") | Post.content_md.ilike(f"{search}") 
+             | Post.excerpt.ilike(f"{search}"))
+        )
         .options(joinedload(Post.author))
         .order_by(Post.created_at.desc())
     )
@@ -57,7 +63,6 @@ def get_all():
     posts = []
     for post in post_pagination.items:
         post_data = PostResponseMini.model_validate(post).model_dump()
-        
         if post.author:
             post_data["author"] = {
                 "id": post.author.id,

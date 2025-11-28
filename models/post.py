@@ -5,27 +5,33 @@ from utils import OrmBase
 from typing import Optional
 from .user import UserPublic
 
+class ArgsAllModel(BaseModel):
+    page: Optional[int] = 1
+    limit: Optional[int] = 4
+    search: Optional[str] = ""
+
+
 class PostModel(BaseModel):
     title: str
-    excerpt: Optional[str]
-    cover_url: Optional[str]
-    meta: Optional[dict]
+    excerpt: Optional[str] = None
+    cover_url: Optional[str] = None
+    meta: Optional[dict] = None
     content_md: str
 
 class PostResponse(OrmBase):
     title: str
     excerpt: str
     slug: str
-    cover_url: Optional[str]
-    meta: Optional[dict]
-    likes: int
+    cover_url: Optional[str] = None
+    meta: Optional[dict] = None
+    likes: Optional[int] = None 
     content_md: str
     author: UserPublic
     created_at: datetime
 
 class PostResponseMini(OrmBase): 
     title: str
-    likes: int
+    likes: Optional[int] = None 
     excerpt: str
     slug: str
     created_at: datetime
