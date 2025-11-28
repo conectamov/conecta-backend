@@ -174,7 +174,7 @@ def create_post():
 @post_blueprint.put("/<int:post_id>")
 @api.validate(
     tags=["posts"],
-    resp=Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse),
+    resp=Response(HTTP_200=PostResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_401=DefaultResponse),
     security={"BearerAuth": []}
 )
 @jwt_required()
