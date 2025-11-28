@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from utils import DefaultResponse
 from spectree import Response
 from flask_jwt_extended import jwt_required, current_user
+from models.role import Role
 
 user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
 
@@ -169,19 +170,34 @@ def update_user(user_id):
             return {"msg": f"The email {data['email']} has already been taken."}, 400
         user.email = data["email"]
     
-    user.avatar_url = data["avatar_url"]
+    if "avatar_url" in data:
+        user.avatar_url = data["avatar_url"]
     
-    if "public_title" in data and not current_user.role.can_manage_users:
-        return {"msg": "Not authorized to change public_title."}, 403
-    else: 
-        user.public_title = data["public_title"]
+    if "public_title" in data:
+        if not current_user.role.can_manage_users:
+            return {"msg": "Not authorized to change public_title."}, 403
+        else: 
+            user.public_title = data["public_title"]
 
     if "birthdate" in data:
         try:
             user.birthdate = datetime.fromisoformat(data["birthdate"])
         except:
             return {"msg": "Invalid date format. Use YYYY-MM-DD"}, 400
-    
+        
+    if "role" in data:
+        if not (current_user.role.can_manage_users and current_user.role.can_manage_roles):
+            return {"msg": "Not authorized to change role."}, 403
+        else:
+            foundRole = db.session.scalars(
+                select(Role).filter_by(name=data["role"])
+            ).first()
+
+            if not foundRole:
+                return {"msg": f"Couldn't find role with name {data['role']}"}, 400 
+            
+            user.role_id = foundRole.id
+
     if "password" in data:
         user.password = data["password"]
         
