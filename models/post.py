@@ -28,6 +28,7 @@ class PostResponseMini(OrmBase):
     likes: int
     excerpt: str
     slug: str
+    created_at: datetime
     author: UserPublic
 
 class PostResponseList(BaseModel):
