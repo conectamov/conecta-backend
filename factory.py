@@ -7,7 +7,9 @@ from config import Config
 from spectree import SpecTree, SecurityScheme
 from sqlalchemy import select
 
-cors = CORS(support_credentials=True, origins="*")
+# REMOVA esta linha:
+# cors = CORS(support_credentials=True, origins="*")
+
 db = SQLAlchemy()
 migrate = Migrate()
 api = SpecTree(
@@ -31,6 +33,8 @@ jwt = JWTManager()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    CORS(app, supports_credentials=True, origins="*")
 
     api.register(app)
     db.init_app(app)
