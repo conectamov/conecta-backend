@@ -18,12 +18,14 @@ class PostResponse(OrmBase):
     slug: str
     cover_url: Optional[str]
     meta: Optional[dict]
+    likes: int
     content_md: str
     author: UserPublic
     created_at: datetime
 
 class PostResponseMini(OrmBase): 
     title: str
+    likes: int
     excerpt: str
     slug: str
     author: UserPublic
@@ -38,6 +40,7 @@ class Post(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.Unicode(256), nullable=False, unique=True)
+    likes = db.Column(db.Integer, default=0)
     slug = db.Column(db.UnicodeText, nullable=False)
     excerpt = db.Column(db.UnicodeText, nullable=False)
     cover_url = db.Column(db.Unicode(1024))

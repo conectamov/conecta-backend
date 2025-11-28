@@ -32,6 +32,7 @@ def generate_slug(text: str) -> str:
 @post_blueprint.get("/")
 @api.validate(
     tags=["posts"],
+    resp=Response(HTTP_200=PostResponseList, HTTP_404=DefaultResponse)
 )
 def get_all():
     """
