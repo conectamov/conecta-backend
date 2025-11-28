@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -31,12 +31,30 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    CORS(app, 
-         resources={r"/*": {"origins": "*"}},
-         supports_credentials=True,
-         allow_headers=["Content-Type", "Authorization"],
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+    CORS(app, supports_credentials=True, origins="*")
 
+    
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, PUT, POST')
+        response.headers.add('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+        
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Max-Age', '86400')  # 24 horas
+        
+        return response
+
+    @app.before_request
+    def handle_preflight():
+        if request.method == "OPTIONS":
+            response = make_response()
+            response.headers.add("Access-Control-Allow-Origin", "*")
+            response.headers.add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
+            response.headers.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+            return response
+
+    
     api.register(app)
     db.init_app(app)
     jwt.init_app(app)
