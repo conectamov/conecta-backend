@@ -7,9 +7,6 @@ from config import Config
 from spectree import SpecTree, SecurityScheme
 from sqlalchemy import select
 
-# REMOVA esta linha:
-# cors = CORS(support_credentials=True, origins="*")
-
 db = SQLAlchemy()
 migrate = Migrate()
 api = SpecTree(
