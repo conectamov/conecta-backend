@@ -46,8 +46,8 @@ def get_all():
     stmt = (
         select(Post)
         .filter(
-            (Post.title.ilike(f"%{search}%") | Post.content_md.ilike(f"{search}") 
-             | Post.excerpt.ilike(f"{search}"))
+            (Post.title.ilike(f"%{search}%") | Post.content_md.ilike(f"%{search}%") 
+             | Post.excerpt.ilike(f"%{search}%"))
         )
         .options(joinedload(Post.author))
         .order_by(Post.created_at.desc())
