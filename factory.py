@@ -15,15 +15,15 @@ api = SpecTree(
     path="docs",
     version="v1.0",
     security_schemes=[
-            SecurityScheme(
-                name="BearerAuth",  
-                data={
-                    "type": "http",     
-                    "scheme": "bearer",   
-                    "bearerFormat": "JWT" 
-                }
-            )
-        ]
+        SecurityScheme(
+            name="BearerAuth",  
+            data={
+                "type": "http",     
+                "scheme": "bearer",   
+                "bearerFormat": "JWT" 
+            }
+        )
+    ]
 )
 jwt = JWTManager()
 
@@ -31,30 +31,37 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    CORS(app, supports_credentials=True, origins="*")
+    CORS(app, 
+         supports_credentials=True, 
+         origins=[
+             "https://conecta-frontend.vercel.app",
+             "http://localhost:5173",
+             "http://127.0.0.1:5173"  
+         ],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"]
+    )
 
-    
     @app.after_request
     def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, PUT, POST')
-        response.headers.add('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
-        
+        # These headers will be added by CORS, but you can keep this for additional headers
         response.headers.add('Access-Control-Allow-Credentials', 'true')
-        response.headers.add('Access-Control-Max-Age', '86400')  # 24 horas
-        
+        response.headers.add('Access-Control-Max-Age', '86400')
         return response
 
     @app.before_request
     def handle_preflight():
         if request.method == "OPTIONS":
             response = make_response()
-            response.headers.add("Access-Control-Allow-Origin", "*")
-            response.headers.add("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
-            response.headers.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+            response.headers.add("Access-Control-Allow-Origin", 
+                               "https://conecta-frontend.vercel.app")
+            response.headers.add("Access-Control-Allow-Methods", 
+                               "GET, PUT, POST, DELETE, OPTIONS")
+            response.headers.add("Access-Control-Allow-Headers", 
+                               "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+            response.headers.add("Access-Control-Allow-Credentials", "true")
             return response
 
-    
     api.register(app)
     db.init_app(app)
     jwt.init_app(app)
