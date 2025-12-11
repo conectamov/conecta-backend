@@ -87,6 +87,39 @@ def get_role(role_id):
 
     return response
 
+@role_blueprint.get("/<string:role_name>")
+@api.validate(
+    tags=["roles"],
+    resp = Response(HTTP_200=RoleResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
+    security={"BearerAuth": []}
+)
+@jwt_required()
+def get_role_by_name(role_name):
+    """
+    Get a specific role by name
+    """
+
+    if not current_user.role.can_access_sensitive_information:
+        return {"msg": "Not authorized"}, 403
+
+    role = db.session.scalars(select(Role).filter_by(name=role_name)).first()
+
+    if role is None:
+        return {"msg": f"Couldn't find role with name {role_name}"}, 404
+
+    response = {
+        "id": role.id,
+        "name": role.name,
+        "can_manage_users": True if role.can_manage_users else False,
+        "can_manage_subscriptions": True if role.can_manage_subscriptions else False,
+        "can_create_posts": True if role.can_create_posts else False,
+        "can_manage_posts": True if role.can_manage_posts else False,
+        "can_manage_roles": True if role.can_manage_roles else False,
+        "can_access_sensitive_information": True if role.can_access_sensitive_information else False
+    }
+
+    return response
+
 @role_blueprint.post("/")
 @api.validate(
     tags=["roles"],
