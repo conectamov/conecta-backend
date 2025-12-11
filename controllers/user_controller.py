@@ -43,7 +43,7 @@ def get_user(user_id):
     security={"BearerAuth": []}
 )
 @jwt_required()
-def get_user():
+def get_me():
     """
     Get information of current user
     """
