@@ -114,6 +114,32 @@ def get_post(slug):
     
     return response_data
 
+@post_blueprint.get("/<int:post_id>")
+@api.validate(
+    tags=["posts"],
+    resp=Response(HTTP_200=PostResponse, HTTP_404=DefaultResponse)
+)
+def get_post_by_id(post_id):
+    """
+    Get specific post by post_id
+    """
+    post = db.session.get(Post, post_id)
+
+    if post is None:
+        return {"msg": f"Couldn't find post with id {post_id}"}, 404
+
+    response_data = PostResponse.model_validate(post).model_dump()
+    
+    if post.author:
+        response_data["author"] = {
+            "id": post.author.id,
+            "username": post.author.username,
+            "avatar_url": post.author.avatar_url,
+            "public_title": post.author.public_title
+        }
+    
+    return response_data
+
 @post_blueprint.post("/")
 @api.validate(
     tags=["posts"],
