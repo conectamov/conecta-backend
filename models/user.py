@@ -37,7 +37,7 @@ class User(db.Model):
     __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False)
+    username = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)
     avatar_url = db.Column(db.UnicodeText, nullable=True)
     public_title = db.Column(db.String(128), nullable=True)
