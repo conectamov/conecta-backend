@@ -8,7 +8,7 @@ from spectree import Response
 from utils import DefaultResponse
 
 class LoginModel(BaseModel):
-    username: str   
+    email: str   
     password: str
 
 class LoginResponse(BaseModel):
