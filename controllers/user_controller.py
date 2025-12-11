@@ -10,6 +10,7 @@ from models.role import Role
 
 user_blueprint = Blueprint('user-blueprint', __name__, url_prefix="/user")
 
+
 @user_blueprint.get("/<int:user_id>")
 @api.validate(
     tags=["users"],
@@ -28,6 +29,27 @@ def get_user(user_id):
     user = db.session.get(User, user_id)
     if user == None:
         return {"msg": f"Couldn't find user with id {user_id}"}, 404
+
+    user.role_name = user.role.name
+
+    response = UserResponse.model_validate(user).model_dump()
+
+    return response
+
+@user_blueprint.get("/me")
+@api.validate(
+    tags=["users"],
+    resp=Response(HTTP_200=UserResponse, HTTP_400=DefaultResponse),
+    security={"BearerAuth": []}
+)
+@jwt_required()
+def get_user():
+    """
+    Get information of current user
+    """
+    user = db.session.get(User, current_user.id)
+    if user == None:
+        return {"msg": f"Couldn't find user with id {current_user.id}"}, 404
 
     user.role_name = user.role.name
 
