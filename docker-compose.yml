@@ -11,18 +11,29 @@ services:
     ports:
       - "5432:5432"
 
-  app:
-    build: "./Dockerfile.production"
-    depends_on:
-      - db
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      MAIL_KEY: ${MAIL_KEY}
-      FLASK_DEBUG: 0
+  waha:
+    restart: always
+    image: devlikeapro/waha:latest
+
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '100m'
+        max-file: '10'
+
     ports:
-      - "5000:5000"
+      - '3000:3000/tcp'
+
     volumes:
-      - .:/app
+      - './waha/sessions:/app/.sessions'
+      - './waha/media:/app/.media'
+
+    env_file:
+      - .env
 
 volumes:
   db_data:
