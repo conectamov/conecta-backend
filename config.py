@@ -17,5 +17,5 @@ class Config:
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    
+    FLASK_DEBUG = os.getenv("FLASK_DEBUG") or False
 

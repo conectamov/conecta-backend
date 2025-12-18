@@ -7,6 +7,10 @@ from config import Config
 from spectree import SpecTree, SecurityScheme
 from sqlalchemy import select
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_admin import Admin
+from flask_admin.theme import Bootstrap4Theme
+from admin.admin import start_admin_views
+
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -31,6 +35,7 @@ jwt = JWTManager()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    from models import User
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
@@ -63,7 +68,10 @@ def create_app():
     jwt.init_app(app)
     migrate.init_app(app, db)
 
-    from models import User
+    if(app.config.get("FLASK_DEBUG")):
+        admin = Admin(app, name='Conecta Panel', theme=Bootstrap4Theme(swatch='darkly',))
+        start_admin_views(admin, db)
+
     @jwt.user_lookup_loader
     def user_load(header, data):
         return db.session.scalars(
