@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from utils import OrmBase
 from typing import Optional
 
+
 class RoleModel(BaseModel):
     name: str
     can_manage_users: Optional[bool]
@@ -11,6 +12,7 @@ class RoleModel(BaseModel):
     can_manage_posts: Optional[bool]
     can_manage_roles: Optional[bool]
     can_access_sensitive_information: Optional[bool]
+
 
 class RoleResponse(OrmBase):
     name: str
@@ -21,13 +23,16 @@ class RoleResponse(OrmBase):
     can_manage_roles: bool
     can_access_sensitive_information: bool
 
-class RoleResponseMini(OrmBase): 
+
+class RoleResponseMini(OrmBase):
     name: str
+
 
 class RoleResponseList(BaseModel):
     page: int
     pages: int
     roles: list[RoleResponseMini]
+
 
 class Role(db.Model):
     __tablename__ = "role"

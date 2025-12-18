@@ -5,6 +5,7 @@ from utils import OrmBase
 from typing import Optional
 from .user import UserPublic
 
+
 class ArgsAllModel(BaseModel):
     page: Optional[int] = 1
     limit: Optional[int] = 4
@@ -18,29 +19,33 @@ class PostModel(BaseModel):
     meta: Optional[dict] = None
     content_md: str
 
+
 class PostResponse(OrmBase):
     title: str
     excerpt: str
     slug: str
     cover_url: Optional[str] = None
     meta: Optional[dict] = None
-    likes: Optional[int] = None 
+    likes: Optional[int] = None
     content_md: str
     author: UserPublic
     created_at: datetime
 
-class PostResponseMini(OrmBase): 
+
+class PostResponseMini(OrmBase):
     title: str
-    likes: Optional[int] = None 
+    likes: Optional[int] = None
     excerpt: str
     slug: str
     created_at: datetime
     author: UserPublic
 
+
 class PostResponseList(BaseModel):
     page: int
     pages: int
-    posts: list[PostResponseMini]     
+    posts: list[PostResponseMini]
+
 
 class Post(db.Model):
     __tablename__ = "post"
@@ -53,9 +58,9 @@ class Post(db.Model):
     cover_url = db.Column(db.Unicode(1024))
     meta = db.Column(db.JSON, default=dict)
     content_md = db.Column(db.UnicodeText, nullable=False)
-    created_at = db.Column(db.DateTime, default = lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     author = db.relationship("User", back_populates="posts")
 

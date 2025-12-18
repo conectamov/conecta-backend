@@ -7,7 +7,7 @@ RUN apt-get update && \
       pkg-config \
       python3-dev \
       libdbus-1-dev \
-      dbus \                     
+      dbus \
       dbus-user-session \
       libdbus-glib-1-dev \
       libglib2.0-dev \

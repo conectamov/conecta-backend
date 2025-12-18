@@ -3,12 +3,19 @@ from flask_jwt_extended import jwt_required, current_user
 from factory import api, db
 from spectree import Response
 from utils import DefaultResponse
-from models.role import Role, RoleResponse, RoleModel, RoleResponseList, RoleResponseMini
+from models.role import (
+    Role,
+    RoleResponse,
+    RoleModel,
+    RoleResponseList,
+    RoleResponseMini,
+)
 from datetime import datetime, timezone
 from sqlalchemy import select
 from models.user import User
 
-role_blueprint = Blueprint('role-blueprint', __name__, url_prefix="/roles")
+role_blueprint = Blueprint("role-blueprint", __name__, url_prefix="/roles")
+
 
 def to_bool(val):
     if isinstance(val, bool):
@@ -19,47 +26,64 @@ def to_bool(val):
         return False
     return bool(val)
 
+
 @role_blueprint.get("/")
 @jwt_required()
 @api.validate(
     tags=["roles"],
-    resp = Response(HTTP_200=RoleResponseList, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
-    security={"BearerAuth": []}
+    resp=Response(
+        HTTP_200=RoleResponseList,
+        HTTP_400=DefaultResponse,
+        HTTP_404=DefaultResponse,
+        HTTP_403=DefaultResponse,
+    ),
+    security={"BearerAuth": []},
 )
 def get_all():
     """
     Get all roles
     """
- 
+
     if not current_user.role.can_access_sensitive_information:
         return {"msg": "Not authorized"}, 403
- 
-    page = request.args.get('page', 1, type=int)
-    limit = request.args.get('limit', 5, type=int)
+
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 5, type=int)
 
     role_pagination = db.paginate(
         select(Role).order_by(Role.id.desc()),
         page=page,
         per_page=limit,
-        error_out=False
+        error_out=False,
     )
 
-    roles = [RoleResponseMini.model_validate({
-        "id": role.id,
-        "name": role.name,
-    }).model_dump() for role in role_pagination.items]
-    
+    roles = [
+        RoleResponseMini.model_validate(
+            {
+                "id": role.id,
+                "name": role.name,
+            }
+        ).model_dump()
+        for role in role_pagination.items
+    ]
+
     return {
-        'page': role_pagination.page,
-        'pages': role_pagination.pages,
-        'roles': roles
+        "page": role_pagination.page,
+        "pages": role_pagination.pages,
+        "roles": roles,
     }
+
 
 @role_blueprint.get("/<int:role_id>")
 @api.validate(
     tags=["roles"],
-    resp = Response(HTTP_200=RoleResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
-    security={"BearerAuth": []}
+    resp=Response(
+        HTTP_200=RoleResponse,
+        HTTP_400=DefaultResponse,
+        HTTP_404=DefaultResponse,
+        HTTP_403=DefaultResponse,
+    ),
+    security={"BearerAuth": []},
 )
 @jwt_required()
 def get_role(role_id):
@@ -82,16 +106,24 @@ def get_role(role_id):
         "can_create_posts": True if role.can_create_posts else False,
         "can_manage_posts": True if role.can_manage_posts else False,
         "can_manage_roles": True if role.can_manage_roles else False,
-        "can_access_sensitive_information": True if role.can_access_sensitive_information else False
+        "can_access_sensitive_information": True
+        if role.can_access_sensitive_information
+        else False,
     }
 
     return response
 
+
 @role_blueprint.get("/<string:role_name>")
 @api.validate(
     tags=["roles"],
-    resp = Response(HTTP_200=RoleResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
-    security={"BearerAuth": []}
+    resp=Response(
+        HTTP_200=RoleResponse,
+        HTTP_400=DefaultResponse,
+        HTTP_404=DefaultResponse,
+        HTTP_403=DefaultResponse,
+    ),
+    security={"BearerAuth": []},
 )
 @jwt_required()
 def get_role_by_name(role_name):
@@ -115,17 +147,25 @@ def get_role_by_name(role_name):
         "can_create_posts": True if role.can_create_posts else False,
         "can_manage_posts": True if role.can_manage_posts else False,
         "can_manage_roles": True if role.can_manage_roles else False,
-        "can_access_sensitive_information": True if role.can_access_sensitive_information else False
+        "can_access_sensitive_information": True
+        if role.can_access_sensitive_information
+        else False,
     }
 
     return response
+
 
 @role_blueprint.post("/")
 @api.validate(
     tags=["roles"],
     json=RoleModel,
-    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
-    security={"BearerAuth": []}
+    resp=Response(
+        HTTP_200=DefaultResponse,
+        HTTP_400=DefaultResponse,
+        HTTP_404=DefaultResponse,
+        HTTP_403=DefaultResponse,
+    ),
+    security={"BearerAuth": []},
 )
 @jwt_required()
 def create_role():
@@ -145,16 +185,18 @@ def create_role():
         return {"msg": f"The role name '{data['name']}' has already been taken."}, 400
 
     role = Role(
-        name= data["name"],
-        can_manage_users= to_bool(data.get("can_manage_users")),
-        can_manage_subscriptions= to_bool(data.get("can_manage_subscriptions")),
-        can_create_posts= to_bool(data.get("can_create_posts")),
-        can_manage_posts= to_bool(data.get("can_manage_posts")),
-        can_manage_roles= to_bool(data.get("can_manage_roles")),
-        can_access_sensitive_information= to_bool(data.get("can_access_sensitive_information"))
+        name=data["name"],
+        can_manage_users=to_bool(data.get("can_manage_users")),
+        can_manage_subscriptions=to_bool(data.get("can_manage_subscriptions")),
+        can_create_posts=to_bool(data.get("can_create_posts")),
+        can_manage_posts=to_bool(data.get("can_manage_posts")),
+        can_manage_roles=to_bool(data.get("can_manage_roles")),
+        can_access_sensitive_information=to_bool(
+            data.get("can_access_sensitive_information")
+        ),
     )
 
-    try: 
+    try:
         db.session.add(role)
         db.session.commit()
     except:
@@ -166,8 +208,13 @@ def create_role():
 @role_blueprint.put("/<int:role_id>")
 @api.validate(
     tags=["roles"],
-    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse, HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
-    security={"BearerAuth": []}
+    resp=Response(
+        HTTP_200=DefaultResponse,
+        HTTP_400=DefaultResponse,
+        HTTP_404=DefaultResponse,
+        HTTP_403=DefaultResponse,
+    ),
+    security={"BearerAuth": []},
 )
 @jwt_required()
 def update_role(role_id):
@@ -183,7 +230,9 @@ def update_role(role_id):
 
     if "name" in data and data["name"] != role.name:
         if db.session.scalars(select(Role).filter_by(name=data["name"])).first():
-            return {"msg": f"The role name '{data['name']}' has already been taken."}, 400
+            return {
+                "msg": f"The role name '{data['name']}' has already been taken."
+            }, 400
         role.name = data["name"]
 
     boolean_fields = [
@@ -192,7 +241,7 @@ def update_role(role_id):
         "can_create_posts",
         "can_manage_posts",
         "can_manage_roles",
-        "can_access_sensitive_information"
+        "can_access_sensitive_information",
     ]
 
     for field in boolean_fields:
@@ -207,19 +256,24 @@ def update_role(role_id):
 
     return {"msg": "Updated successfully!"}
 
+
 @role_blueprint.delete("/<int:role_id>")
 @api.validate(
     tags=["roles"],
-    resp = Response(HTTP_200=DefaultResponse, HTTP_400=DefaultResponse,
-                    HTTP_404=DefaultResponse, HTTP_403=DefaultResponse),
-    security={"BearerAuth": []}
+    resp=Response(
+        HTTP_200=DefaultResponse,
+        HTTP_400=DefaultResponse,
+        HTTP_404=DefaultResponse,
+        HTTP_403=DefaultResponse,
+    ),
+    security={"BearerAuth": []},
 )
 @jwt_required()
 def delete_role(role_id):
 
     if not current_user.role.can_manage_roles:
         return {"msg": "Not authorized"}, 403
-    
+
     role = db.session.get(Role, role_id)
     if role is None:
         return {"msg": f"Couldn't find role with id {role_id}"}, 404
@@ -230,10 +284,14 @@ def delete_role(role_id):
     user_role = db.session.scalars(select(Role).filter_by(name="user")).first()
 
     if user_role is None:
-        return {"msg": "No default role found to transfer users in the current role to. Create a role named 'user'."}, 400
+        return {
+            "msg": "No default role found to transfer users in the current role to. Create a role named 'user'."
+        }, 400
 
     try:
-        users_to_transfer = db.session.scalars(select(User).filter_by(role_id=role.id)).all()
+        users_to_transfer = db.session.scalars(
+            select(User).filter_by(role_id=role.id)
+        ).all()
         for u in users_to_transfer:
             u.role = user_role
 

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import Optional
 from utils import OrmBase
 
+
 class UserModel(BaseModel):
     username: str
     email: str
@@ -13,10 +14,12 @@ class UserModel(BaseModel):
     avatar_url: Optional[str]
     birthdate: Optional[datetime]
 
+
 class UserPublic(OrmBase):
     username: str
     avatar_url: Optional[str]
     public_title: Optional[str]
+
 
 class UserResponse(OrmBase):
     username: str
@@ -33,6 +36,7 @@ class UserResponseList(BaseModel):
     pages: int
     users: list[UserResponse]
 
+
 class User(db.Model):
     __tablename__ = "user"
 
@@ -43,12 +47,12 @@ class User(db.Model):
     public_title = db.Column(db.String(128), nullable=True)
     password_hash = db.Column(db.Unicode(256), nullable=False)
     birthdate = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default = lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    @property 
+    @property
     def password():
         raise AttributeError("password's not a readable attribute")
-    
+
     @password.setter
     def password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -57,7 +61,7 @@ class User(db.Model):
         if not self.password_hash:
             return True
         return check_password_hash(self.password_hash, password)
-    
+
     role_id = db.Column(db.Integer, db.ForeignKey("role.id"))
 
     role = db.relationship("Role", back_populates="user")
@@ -67,9 +71,8 @@ class User(db.Model):
         super().__init__(**kwargs)
         if not self.role:
             from .role import Role
-            self.role = db.session.scalars(
-                select(Role).filter_by(name="user")
-            ).first()
-    
+
+            self.role = db.session.scalars(select(Role).filter_by(name="user")).first()
+
     def __repr__(self) -> str:
         return f"User {self.username}"

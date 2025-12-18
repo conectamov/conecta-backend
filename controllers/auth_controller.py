@@ -7,25 +7,29 @@ from flask_jwt_extended import create_access_token, jwt_required
 from spectree import Response
 from utils import DefaultResponse
 
+
 class LoginModel(BaseModel):
-    email: str   
+    email: str
     password: str
+
 
 class LoginResponse(BaseModel):
     access_token: str
 
+
 auth_blueprint = Blueprint("auth-blueprint", __name__, url_prefix="/auth")
+
 
 @auth_blueprint.post("/login")
 @api.validate(
     tags=["auth"],
     json=LoginModel,
-    resp=Response(HTTP_200=LoginResponse, HTTP_401=DefaultResponse)
+    resp=Response(HTTP_200=LoginResponse, HTTP_401=DefaultResponse),
 )
 def login():
     data = request.json
 
-    user = db.session.scalars(select(User).filter_by(email=data['email'])).first()
+    user = db.session.scalars(select(User).filter_by(email=data["email"])).first()
 
     if user and user.verify_password(data["password"]):
         return {
@@ -36,11 +40,9 @@ def login():
 
     return {"msg": "Username and password do not match"}, 401
 
+
 @auth_blueprint.post("/logout")
-@api.validate(
-    tags=["auth"],
-    security={"BearerAuth": []}  
-)
+@api.validate(tags=["auth"], security={"BearerAuth": []})
 @jwt_required()
 def logout():
     """

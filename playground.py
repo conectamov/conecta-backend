@@ -12,35 +12,37 @@ app = create_app()
 
 with app.app_context():
     if db.session.query(Role).count() == 0:
-        role = Role(name = "user")
+        role = Role(name="user")
         db.session.add(role)
         role = Role(
-            name = "admin",
-            can_manage_users = True,
-            can_manage_subscriptions = True,
-            can_create_posts = True,
-            can_manage_posts = True,
-            can_manage_roles = True,
-            can_access_sensitive_information = True
+            name="admin",
+            can_manage_users=True,
+            can_manage_subscriptions=True,
+            can_create_posts=True,
+            can_manage_posts=True,
+            can_manage_roles=True,
+            can_access_sensitive_information=True,
         )
         db.session.add(role)
         db.session.commit()
 
-    admin_role = db.session.scalars(
-        select(Role).filter_by(name="admin")        
-    ).first()
+    admin_role = db.session.scalars(select(Role).filter_by(name="admin")).first()
 
     admin_username = os.getenv("ADMIN_USERNAME")
     admin_email = os.getenv("ADMIN_EMAIL")
     admin_password = os.getenv("ADMIN_PASSWORD")
-    if not db.session.scalars(select(User).filter((User.username==admin_username) | (User.email==admin_email))).first():
-        
+    if not db.session.scalars(
+        select(User).filter(
+            (User.username == admin_username) | (User.email == admin_email)
+        )
+    ).first():
+
         admin = User(
-            username = admin_username,
-            email = admin_email,
-            password = admin_password,
-            public_title = "Anuncio oficial CONECTA",
-            role = admin_role
+            username=admin_username,
+            email=admin_email,
+            password=admin_password,
+            public_title="Anuncio oficial CONECTA",
+            role=admin_role,
         )
 
         db.session.add(admin)
