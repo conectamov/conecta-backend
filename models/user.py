@@ -3,7 +3,7 @@ from utils import OrmBase
 from datetime import datetime, timezone
 from pydantic import BaseModel
 from typing import Optional
-from sqlmodel import Field, SQLModel, Column, TEXT, Relationship, select
+from sqlmodel import Field, SQLModel, Column, VARCHAR, Relationship, select
 from sqlalchemy import event, select
 
 
@@ -31,10 +31,10 @@ class UserResponseList(BaseModel):
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    username: str = Field(sa_column=Column(TEXT(64), nullable=True))
-    email: str = Field(sa_column=Column(TEXT(128), nullable=False, unique=True))
+    username: str = Field(sa_column=Column(VARCHAR(64), nullable=True))
+    email: str = Field(sa_column=Column(VARCHAR(128), nullable=False, unique=True))
     avatar_url: Optional[str] = None
-    public_title: Optional[str] = Field(sa_column=Column(TEXT(128), nullable=True))
+    public_title: Optional[str] = Field(sa_column=Column(VARCHAR(128), nullable=True))
     password_hash: str = Field(nullable=False)
     birthdate: Optional[datetime]
     created_at: datetime = datetime.now(timezone.utc)

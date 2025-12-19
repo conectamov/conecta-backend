@@ -11,6 +11,10 @@ from sqlalchemy.dialects import postgresql
 class UserAnswer(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     answers: Optional[List[int]] = Field(default=None, sa_column=Column(ARRAY(TEXT)))
+    number: Optional[str] = Field(nullable=True)
 
 
-# TODO: questions model
+class MatchQuestion(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    order: int
+    answers: Optional[List[int]] = Field(default=None, sa_column=Column(ARRAY(TEXT)))

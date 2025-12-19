@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from utils import OrmBase
 from typing import Optional
-from sqlmodel import Field, SQLModel, Column, TEXT, Relationship
+from sqlmodel import Field, SQLModel, Column, TEXT, Relationship, VARCHAR
 from models.user import User
 
 
@@ -29,7 +29,7 @@ class Role(SQLModel, table=True):
     __tablename__ = "role"
 
     id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(sa_column=Column(TEXT(64), nullable=False))
+    name: str = Field(sa_column=Column(VARCHAR(64), nullable=False))
     can_manage_users: Optional[bool] = False
     can_manage_subscriptions: Optional[bool] = False
     can_create_posts: Optional[bool] = False

@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - db_data:/var/lib/postgresql
+      - ./db_data:/var/lib/postgresql
     ports:
       - "5432:5432"
 
@@ -34,6 +34,3 @@ services:
 
     env_file:
       - .env
-
-volumes:
-  db_data:

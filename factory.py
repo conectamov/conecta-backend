@@ -78,9 +78,14 @@ def create_app():
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
+    from models.role import Role
+    from models.user import User
+    from models.post import Post
 
     app.engine = create_engine(app.config.get("DATABASE_URL"), echo=True)
-    SQLModel.metadata.create_all(app.engine)
+    SQLModel.metadata.create_all(
+        app.engine,
+    )
 
     if app.config.get("FLASK_DEBUG"):
         app.secret_key = "12345678"
@@ -114,11 +119,13 @@ def create_app():
     from controllers.role_controller import role_blueprint
     from controllers.subscriber_controller import subscriber_blueprint
     from controllers.post_controller import post_blueprint
+    from controllers.bot_controller import bot_blueprint
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(role_blueprint)
     app.register_blueprint(subscriber_blueprint)
     app.register_blueprint(user_blueprint)
     app.register_blueprint(post_blueprint)
+    app.register_blueprint(bot_blueprint)
 
     return app
