@@ -113,11 +113,12 @@ def create_app():
     from controllers.user_controller import user_blueprint
     from controllers.role_controller import role_blueprint
     from controllers.subscriber_controller import subscriber_blueprint
+    from controllers.post_controller import post_blueprint
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(role_blueprint)
     app.register_blueprint(subscriber_blueprint)
     app.register_blueprint(user_blueprint)
-    # app.register_blueprint(post_blueprint)
+    app.register_blueprint(post_blueprint)
 
     return app
