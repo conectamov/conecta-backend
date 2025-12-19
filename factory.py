@@ -105,9 +105,20 @@ def create_app():
 
         return db.session.scalars(select(User).filter_by(username=data["sub"])).first()
 
+<<<<<<< HEAD
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
         from models.user import TokenBlocklist
+=======
+    from controllers import (
+        subscriber_blueprint,
+        user_blueprint,
+        auth_blueprint,
+        post_blueprint,
+        role_blueprint,
+        bot_blueprint,
+    )
+>>>>>>> 1796fbd (feat: added bot_controller.py)
 
         jti = jwt_payload["jti"]
         token = db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar()
@@ -126,6 +137,10 @@ def create_app():
     app.register_blueprint(subscriber_blueprint)
     app.register_blueprint(user_blueprint)
     app.register_blueprint(post_blueprint)
+<<<<<<< HEAD
+=======
+    app.register_blueprint(role_blueprint)
+>>>>>>> 1796fbd (feat: added bot_controller.py)
     app.register_blueprint(bot_blueprint)
 
     return app
