@@ -56,4 +56,3 @@ def whatsapp_webhook():
 
     requests.post(url, json=response, headers=headers)
     return {"status": "OK"}, 200
->>>>>>> 1796fbd (feat: added bot_controller.py)
