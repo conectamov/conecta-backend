@@ -3,7 +3,7 @@ from utils import OrmBase
 from datetime import datetime, timezone
 from pydantic import BaseModel
 from typing import Optional
-from sqlmodel import Field, SQLModel, Column, TEXT, Unicode, Relationship, select
+from sqlmodel import Field, SQLModel, Column, TEXT, Relationship, select
 from sqlalchemy import event, select
 
 
@@ -30,7 +30,6 @@ class UserResponseList(BaseModel):
 
 
 class User(SQLModel, table=True):
-    __tablename__ = "user"
     id: int | None = Field(default=None, primary_key=True)
     username: str = Field(sa_column=Column(TEXT(64), nullable=True))
     email: str = Field(sa_column=Column(TEXT(128), nullable=False, unique=True))
@@ -38,14 +37,18 @@ class User(SQLModel, table=True):
     public_title: Optional[str] = Field(sa_column=Column(TEXT(128), nullable=True))
     password_hash: str = Field(nullable=False)
     birthdate: Optional[datetime]
-    created_at: datetime = datetime.now(timezone.utc).isoformat()
+    created_at: datetime = datetime.now(timezone.utc)
 
     role_id: int | None = Field(default=None, foreign_key=("role.id"))
     role: Optional["Role"] | None = Relationship(back_populates="user")
 
+    posts: list["Post"] | None = Relationship(back_populates="author")
+
     @property
     def password(self):
         raise AttributeError("password is not readable")
+
+    # user_answers = db.relationship("UserAnswer", back_populates="user")
 
     @password.setter
     def password(self, password: str):
@@ -53,21 +56,6 @@ class User(SQLModel, table=True):
 
     def verify_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
-
-    def is_authenticated(self):
-        return False
-
-    def is_active():
-        return True
-
-    def is_anonymous():
-        return False
-
-    def get_id(self):
-        return self.id
-
-    # posts = db.relationship("Post", back_populates="author")
-    # user_answers = db.relationship("UserAnswer", back_populates="user")
 
     def __repr__(self) -> str:
         return f"User {self.username}"
@@ -88,4 +76,4 @@ def before_user_insert(mapper, connection, target):
 class TokenBlocklist(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     jti: str = Field(nullable=False, index=True)
-    created_at: datetime = datetime.now(timezone.utc).isoformat()
+    created_at: datetime = datetime.now(timezone.utc)

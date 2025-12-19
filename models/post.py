@@ -3,7 +3,8 @@ from datetime import datetime, timezone
 from pydantic import BaseModel
 from utils import OrmBase
 from typing import Optional
-from models.user import UserPublic
+from models.user import UserPublic, User
+from sqlmodel import Field, SQLModel, Relationship, JSON, Column
 
 
 class ArgsAllModel(BaseModel):
@@ -47,22 +48,22 @@ class PostModel(BaseModel):
     content_md: str
 
 
-class Post(db.Model):
-    __tablename__ = "post"
+class Post(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    title: str = Field(nullable=False)
+    likes: int = Field(default=0)
+    slug: str = Field(nullable=False)
+    excerpt: str = Field(nullable=False)
+    cover_url: str = Field(nullable=False)
+    meta: dict = Field(sa_column=Column(JSON, default={}))
+    content_md: str = Field(nullable=False)
+    created_at: datetime = datetime.now(timezone.utc)
 
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.Unicode(256), nullable=False, unique=True)
-    likes = db.Column(db.Integer, default=0)
-    slug = db.Column(db.UnicodeText, nullable=False)
-    excerpt = db.Column(db.UnicodeText, nullable=False)
-    cover_url = db.Column(db.Unicode(1024))
-    meta = db.Column(db.JSON, default=dict)
-    content_md = db.Column(db.UnicodeText, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-
-    author = db.relationship("User", back_populates="posts")
+    author_id: int | None = Field(default=None, foreign_key=("user.id"))
+    author: User | None = Relationship(back_populates="posts")
 
     def __repr__(self) -> str:
         return f"Post {self.id} by {self.author.username}"
+
+    def wrap_formdata(self):
+        return "efef"
