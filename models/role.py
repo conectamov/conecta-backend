@@ -25,16 +25,6 @@ class RoleResponseList(BaseModel):
     roles: list[RoleResponseMini]
 
 
-class RoleModel(BaseModel):
-    name: str
-    can_manage_users: Optional[bool]
-    can_manage_subscriptions: Optional[bool]
-    can_create_posts: Optional[bool]
-    can_manage_posts: Optional[bool]
-    can_manage_roles: Optional[bool]
-    can_access_sensitive_information: Optional[bool]
-
-
 class Role(SQLModel, table=True):
     __tablename__ = "role"
 
