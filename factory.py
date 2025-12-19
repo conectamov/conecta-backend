@@ -10,6 +10,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
 from admin.admin import start_admin_views
+from sqlmodel import SQLModel, create_engine
 
 
 db = SQLAlchemy()
@@ -32,10 +33,8 @@ jwt = JWTManager()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    from models import User
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
-
     CORS(
         app,
         supports_credentials=True,
@@ -80,7 +79,12 @@ def create_app():
     jwt.init_app(app)
     migrate.init_app(app, db)
 
+    app.engine = create_engine(app.config.get("DATABASE_URL"), echo=True)
+    SQLModel.metadata.create_all(app.engine)
+
     if app.config.get("FLASK_DEBUG"):
+        app.secret_key = "12345678"
+
         admin = Admin(
             app,
             name="Conecta Panel",
@@ -92,20 +96,31 @@ def create_app():
 
     @jwt.user_lookup_loader
     def user_load(header, data):
+        from models.user import User
+
         return db.session.scalars(select(User).filter_by(username=data["sub"])).first()
 
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+        from models.user import TokenBlocklist
+
+        jti = jwt_payload["jti"]
+        token = db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar()
+
+        return token is not None
+
     from controllers import (
-        subscriber_blueprint,
-        user_blueprint,
         auth_blueprint,
-        post_blueprint,
-        role_blueprint,
+        #     subscriber_blueprint,
+        #     user_blueprint,
+        #     post_blueprint,
+        #     role_blueprint,
     )
 
-    app.register_blueprint(subscriber_blueprint)
-    app.register_blueprint(user_blueprint)
     app.register_blueprint(auth_blueprint)
-    app.register_blueprint(post_blueprint)
-    app.register_blueprint(role_blueprint)
+    # app.register_blueprint(subscriber_blueprint)
+    # app.register_blueprint(user_blueprint)
+    # app.register_blueprint(post_blueprint)
+    # app.register_blueprint(role_blueprint)
 
     return app

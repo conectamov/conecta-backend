@@ -1,17 +1,8 @@
-from factory import db
 from pydantic import BaseModel
 from utils import OrmBase
 from typing import Optional
-
-
-class RoleModel(BaseModel):
-    name: str
-    can_manage_users: Optional[bool]
-    can_manage_subscriptions: Optional[bool]
-    can_create_posts: Optional[bool]
-    can_manage_posts: Optional[bool]
-    can_manage_roles: Optional[bool]
-    can_access_sensitive_information: Optional[bool]
+from sqlmodel import Field, SQLModel, Column, TEXT, Relationship
+from models.user import User
 
 
 class RoleResponse(OrmBase):
@@ -34,19 +25,29 @@ class RoleResponseList(BaseModel):
     roles: list[RoleResponseMini]
 
 
-class Role(db.Model):
+class RoleModel(BaseModel):
+    name: str
+    can_manage_users: Optional[bool]
+    can_manage_subscriptions: Optional[bool]
+    can_create_posts: Optional[bool]
+    can_manage_posts: Optional[bool]
+    can_manage_roles: Optional[bool]
+    can_access_sensitive_information: Optional[bool]
+
+
+class Role(SQLModel, table=True):
     __tablename__ = "role"
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), nullable=False)
-    can_manage_users = db.Column(db.Boolean, default=False)
-    can_manage_subscriptions = db.Column(db.Boolean, default=False)
-    can_create_posts = db.Column(db.Boolean, default=False)
-    can_manage_posts = db.Column(db.Boolean, default=False)
-    can_manage_roles = db.Column(db.Boolean, default=False)
-    can_access_sensitive_information = db.Column(db.Boolean, default=False)
+    id: int | None = Field(default=None, primary_key=True)
+    name: str = Field(sa_column=Column(TEXT(64), nullable=False))
+    can_manage_users: Optional[bool] = False
+    can_manage_subscriptions: Optional[bool] = False
+    can_create_posts: Optional[bool] = False
+    can_manage_posts: Optional[bool] = False
+    can_manage_roles: Optional[bool] = False
+    can_access_sensitive_information: Optional[bool] = False
 
-    user = db.relationship("User", back_populates="role")
+    user: list[User] = Relationship(back_populates="role")
 
     def __repr__(self) -> str:
         return f"Role {self.name}"

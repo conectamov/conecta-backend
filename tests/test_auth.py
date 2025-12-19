@@ -18,3 +18,9 @@ def test_invalid_credentials(client):
 
     assert response.status_code == 401
     assert "msg" in response.json.keys()
+
+
+def test_logout(auth_client):
+    response = auth_client.post("/auth/logout", follow_redirects=True)
+
+    assert response.status_code == 200

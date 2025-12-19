@@ -3,21 +3,13 @@ from datetime import datetime, timezone
 from pydantic import BaseModel
 from utils import OrmBase
 from typing import Optional
-from .user import UserPublic
+from models.user import UserPublic
 
 
 class ArgsAllModel(BaseModel):
     page: Optional[int] = 1
     limit: Optional[int] = 4
     search: Optional[str] = ""
-
-
-class PostModel(BaseModel):
-    title: str
-    excerpt: Optional[str] = None
-    cover_url: Optional[str] = None
-    meta: Optional[dict] = None
-    content_md: str
 
 
 class PostResponse(OrmBase):
@@ -45,6 +37,14 @@ class PostResponseList(BaseModel):
     page: int
     pages: int
     posts: list[PostResponseMini]
+
+
+class PostModel(BaseModel):
+    title: str
+    excerpt: Optional[str] = None
+    cover_url: Optional[str] = None
+    meta: Optional[dict] = None
+    content_md: str
 
 
 class Post(db.Model):

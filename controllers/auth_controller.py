@@ -1,11 +1,13 @@
 from factory import api, db
 from flask import Blueprint, request
 from sqlalchemy import select
-from models import User
+from models.user import User, TokenBlocklist
 from pydantic import BaseModel
 from flask_jwt_extended import create_access_token, jwt_required
 from spectree import Response
 from utils import DefaultResponse
+from datetime import datetime, timezone, timedelta
+from flask_jwt_extended import get_jwt
 
 
 class LoginModel(BaseModel):
@@ -32,11 +34,7 @@ def login():
     user = db.session.scalars(select(User).filter_by(email=data["email"])).first()
 
     if user and user.verify_password(data["password"]):
-        return {
-            "access_token": create_access_token(
-                identity=user.username, expires_delta=None
-            )
-        }
+        return {"access_token": create_access_token(identity=user.username)}
 
     return {"msg": "Username and password do not match"}, 401
 
@@ -48,4 +46,8 @@ def logout():
     """
     Logout user
     """
-    return {"msg": "Not working yet"}
+    jti = get_jwt()["jti"]
+    now = datetime.now(timezone.utc)
+    db.session.add(TokenBlocklist(jti=jti, created_at=now))
+    db.session.commit()
+    return {"success": True}
