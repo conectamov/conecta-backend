@@ -1,16 +1,14 @@
-from factory import db
 from datetime import datetime, timezone
-from pydantic import BaseModel
-from utils import OrmBase
+from sqlmodel import Field, SQLModel, Column, TEXT
 
 
-class Subscriber(db.Model):
+class Subscriber(SQLModel):
     __tablename__ = "subscriber"
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
-    email = db.Column(db.String(256), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    id: int | None = Field(default=None, primary_key=True)
+    name: str = Field(nullable=False)
+    email: str = Field(sa_column=Column(TEXT(128), nullable=False, unique=True))
+    created_at: datetime = datetime.now(timezone.utc)
 
     def __repr__(self) -> str:
         return f"Subscriber {self.name}, email {self.email}"

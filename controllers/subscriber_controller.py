@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from spectree import Response
 from utils import DefaultResponse
 from sqlalchemy import select
-from models import Subscriber
+from models.subscriber import Subscriber
 
 subscriber_blueprint = Blueprint("subscriber-blueprint", __name__, url_prefix="/sub")
 
