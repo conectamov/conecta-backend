@@ -109,17 +109,12 @@ def create_app():
 
         return token is not None
 
-    from controllers import (
-        auth_blueprint,
-        #     subscriber_blueprint,
-        #     user_blueprint,
-        #     post_blueprint,
-        #     role_blueprint,
-    )
+    from controllers.auth_controller import auth_blueprint
+    from controllers.user_controller import user_blueprint
 
     app.register_blueprint(auth_blueprint)
     # app.register_blueprint(subscriber_blueprint)
-    # app.register_blueprint(user_blueprint)
+    app.register_blueprint(user_blueprint)
     # app.register_blueprint(post_blueprint)
     # app.register_blueprint(role_blueprint)
 
