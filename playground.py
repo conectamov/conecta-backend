@@ -3,7 +3,7 @@ import os
 from factory import db, create_app
 from models.role import Role
 from dotenv import load_dotenv
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from models.user import User
 
 load_dotenv()
@@ -31,19 +31,21 @@ with app.app_context():
     admin_username = os.getenv("ADMIN_USERNAME")
     admin_email = os.getenv("ADMIN_EMAIL")
     admin_password = os.getenv("ADMIN_PASSWORD")
-    if not db.session.scalars(
-        select(User).filter(
+
+    db.session.execute(
+        delete(User).filter(
             (User.username == admin_username) | (User.email == admin_email)
         )
-    ).first():
+    )
 
-        admin = User(
-            username=admin_username,
-            email=admin_email,
-            password=admin_password,
-            public_title="Anuncio oficial CONECTA",
-            role=admin_role,
-        )
+    admin = User(
+        username=admin_username,
+        email=admin_email,
+        public_title="Anuncio oficial CONECTA",
+        role=admin_role,
+    )
 
-        db.session.add(admin)
-        db.session.commit()
+    admin.password = admin_password
+
+    db.session.add(admin)
+    db.session.commit()
