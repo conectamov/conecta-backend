@@ -70,11 +70,12 @@ def create_app():
             select(User).filter_by(username=data["sub"])
         ).first()
 
-    from controllers import subscriber_blueprint, user_blueprint, auth_blueprint, post_blueprint, role_blueprint
+    from controllers import subscriber_blueprint, user_blueprint, auth_blueprint, post_blueprint, role_blueprint, bot_blueprint
     app.register_blueprint(subscriber_blueprint)
     app.register_blueprint(user_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(post_blueprint)
     app.register_blueprint(role_blueprint)
+    app.register_blueprint(bot_blueprint)
 
     return app

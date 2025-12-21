@@ -9,16 +9,9 @@ from utils.tags import tags
 from services.embed_service import EmbedService
 from services.similarity_service import SimilarityService
 from dataclasses import dataclass
+from services.gpt_classifier import classify_student
 
 bot_blueprint = Blueprint('bot-blueprint', __name__, url_prefix="/bot")
-
-#user answer mockado
-class UserAnswerPost():
-    id: int
-    name: str
-    number: str
-    matching: bool
-    answers: list[int] | None
 
 @dataclass
 class UserAnswer():
@@ -34,12 +27,19 @@ class UserAnswer():
 class Session:
     phone: str
     step: str = "ASK_NAME"
-    ask_fullname: str = ""
-    ask_subjects: str = ""
-    ask_level: str = ""
-    ask_interests: str = ""
-    ask_opportunities: str = ""
-    ask_matching: str = ""
+    name: str = ""
+    subjects: str = ""
+    level: str = ""
+    interests: str = ""
+    opportunities: bool = False
+    matching: bool = False
+
+@dataclass
+class UserModel:
+    phone: str
+    tags: list[int]
+    opportunities: bool = False
+    matching: bool = False
 
 #usuarios mockados
 mock_users = [
@@ -82,28 +82,23 @@ mock_users = [
 ]
 
 
-#routes
-@bot_blueprint.post("/")    
-@api.validate(
-    tags=["bot"],
-)
-def register_user():
+def register_user(incoming: UserModel):
     """
     Register users based on interests
     """
-    data = request.json
 
-    userEmbed = EmbedService.user_vector_from_indices(data["answers"])
+    userEmbed = EmbedService.user_vector_from_indices(incoming.tags)
 
     #agora cria o usuário abaixo com os dados e o embed
     newUser = UserAnswer(
-        id=data["id"],
-        number=data["number"],
-        answers=data["answers"],
+        number=incoming.phone,
+        answers=incoming["tags"],
         matching=True,
         newsletter=True,
         embed=userEmbed
     )
+
+    #add na db
 
 
 #default settings
@@ -237,19 +232,6 @@ def match(chat_id: str, user):
     requests.post(send_contact, json=data, headers=headers)
 
 def help(chat_id, type):
-    if type == 0:
-        message = (
-            "👋 Ei! Seja bem-vindo ao Conecta.\n\n"
-            "Aqui você encontra pessoas com interesses parecidos com os seus nos estudos, "
-            "projetos e oportunidades — para se inspirar, trocar ideias e crescer junto ✨\n\n"
-            "👉 Para começar, envie:\n"
-            "*match*\n\n"
-            "Eu vou te mostrar conexões que podem acelerar sua jornada 🚀"
-        )
-
-        send_message(chat_id, message)
-        check_interests()
-        return "", 200
     if type == 1:
         message = (
             "🤔 Não entendi muito bem essa mensagem.\n\n"
@@ -271,56 +253,119 @@ mock_sessions = {}
 def check_interests(chat_id, last_answer):
     phone = "".join(c for c in chat_id if c.isdigit())
 
-    session = mock_sessions.get(phone)
+    session : Session = mock_sessions.get(phone)
 
     if not session:
+        message = (
+            "👋 Oi! Seja bem-vindo ao *Conecta*.\n\n"
+            "Aqui você pode encontrar pessoas com interesses parecidos com os seus em estudos, "
+            "projetos e oportunidades — para trocar ideias, se inspirar e crescer junto ✨\n\n"
+            "👉 Para começar, vou te fazer algumas perguntas rápidas para entender melhor você 😊\n"
+            "Responda com calma: quanto mais claro você for, melhores serão as recomendações.\n\n"
+            "Vamos nessa? 🚀"
+        )
+
+
+        send_message(chat_id, message)
         session = Session(phone=phone)
         mock_sessions[phone] = session
-        send_message(chat_id, "Qual seu nome?")
+        send_message(chat_id, "Qual é o seu nome?")
         return
 
     if session.step == "ASK_NAME":
-        session.ask_fullname = last_answer
+        session.name = last_answer
         session.step = "ASK_SUBJECT"
-        send_message(chat_id, "Quais são suas matérias favoritas?")
+        send_message(
+            chat_id,
+            "Quais matérias você mais gosta ou tem mais interesse?"
+        )
         return
 
     if session.step == "ASK_SUBJECT":
-        session.ask_subjects = last_answer
+        session.subjects = last_answer
         session.step = "ASK_LEVEL"
-        send_message(chat_id, "Como você descreveria o seu nível atual como estudante?")
+        send_message(
+            chat_id,
+            "Conte-nos mais sobre sua história. Como você descreveria seu nível atual como estudante?\n"
+            "Ex: ensino médio, 2º ano, ensino técnico, estudando por conta própria"
+        )
         return
 
     if session.step == "ASK_LEVEL":
-        session.ask_level = last_answer
+        session.level = last_answer
         session.step = "ASK_INTEREST"
-        send_message(chat_id, "Quais são seus interesses no momento?")
+        send_message(
+        chat_id,
+            "Quais são seus interesses no momento?\n"
+            "Ex: escrever debates, olimipíadas, tecnologia, projetos sociais, intercâmbio, inteligência artificial..."
+        )
         return
 
     if session.step == "ASK_INTEREST":
-        session.ask_interests = last_answer
+        session.interests = last_answer
         session.step = "ASK_OPPORTUNITIES"
-        send_message(chat_id, "Você gostaria de receber oportunidades que combinem com você?")
+        send_message(chat_id, "Você gostaria de receber oportunidades que combinem com você? (*Sim* ou *Não*)")
         return
 
     if session.step == "ASK_OPPORTUNITIES":
-        session.ask_opportunities = last_answer
+        if not "sim" in last_answer.lower() and not "não" in last_answer.lower():
+            send_message(chat_id, "Por favor, responda apenas com *Sim* ou *Não*.")
+            send_message(chat_id, "Você gostaria de se receber oportunidades que combinem com você?")
+            return
+
+        if "sim" in last_answer.lower():
+            session.opportunities = True
+
         session.step = "ASK_MATCHING"
-        send_message(chat_id, "Você gostaria de se conectar com outros estudantes?")
+        send_message(chat_id, "Você gostaria de se conectar com outros estudantes? (*Sim* ou *Não*)")
         return
 
+
     if session.step == "ASK_MATCHING":
-        session.ask_matching = last_answer
-        session.step = "DONE"
-        send_message(chat_id, "Analisando suas respostas, aguarde um momento.") 
-        return
-    if session.step == "DONE":
-        #manda pro gpt
+        if not "sim" in last_answer.lower() and not "não" in last_answer.lower():
+            send_message(chat_id, "Por favor, responda apenas com *Sim* ou *Não*.")
+            send_message(chat_id, "Você gostaria de se conectar com outros estudantes?  ")
+            return
+
+        if "sim" in last_answer.lower():
+            session.matching = True
+
+        send_message(chat_id, "Perfeito! Estou analisando suas respostas 🤔")
+       
+        #Retorna a lista de tags   
+        classified = classify_student(session)
+
+        if not classified["appropriate"]:
+            send_message(
+                chat_id,
+                "Não conseguimos para entender muito bem sua resposta 🤔\n"
+                "Ela ficou pouco detalhada ou não se encaixa no que estamos perguntando.\n\n"
+                "Pode explicar melhor? Quanto mais detalhes, melhor para te ajudar 😊"
+            )
+
+            #finish session 
+            #simlula finish session
+            mock_sessions.pop(phone)
+            
+            return
+
+        send_message(chat_id, "Tudo certo! Seu perfil foi criado com sucesso 🚀")
         #finish session
-       
-       
-       
-        send_message(chat_id, "Perfeito! Seu cadastro foi concluído 🚀")
+
+        #simulando final:
+        mock_sessions.pop(phone)
+
+        new_user = UserModel(
+            phone=phone,
+            tags=classified["tags"],
+            opportunities=session.opportunities,
+            matching=session.matching
+        )
+        register_user(new_user)
+
+        #teste:
+        tags_string = ", ".join(tags[i] for i in classified["tags"])
+        send_message(chat_id, tags_string)
 
 
 @bot_blueprint.post("/webhook")
@@ -339,8 +384,8 @@ def whatsapp_webhook():
         return {"status": "Ignored event"}, 200
     
     
-    #check_interests(chat_id, payload["body"])
-    #return "",200
+    check_interests(chat_id, payload["body"])
+    return "",200
 
 
 
@@ -350,7 +395,7 @@ def whatsapp_webhook():
     #).first()
     
     #if not found:
-     #   help(chat_id, 0)
+     #   check_interests(chat_id, payload["body"])
       #  return {"status": "User redirected to check_interests"}, 200
 
 
